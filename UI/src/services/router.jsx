@@ -9,7 +9,7 @@ import { UnprotectedLayout } from '../components/UnprotectedLayout/UnprotectedLa
 
 const unprotectedRoutes = [
   {
-    path: "/",
+    path: "/login",
     element: <Login />,
   },
   {
@@ -20,7 +20,7 @@ const unprotectedRoutes = [
 
 const protectedRoutes = [
   {
-    path: "/dashboard",
+    path: "/",
     element: <Dashboard />
   }
 ]
