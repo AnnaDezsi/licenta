@@ -4,22 +4,22 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#3498db', // Customize the primary color
-      light: '#6ec6ff', // Optional: lighter shade of primary
-      dark: '#0069c0',  // Optional: darker shade of primary
+      main: '#00B4D8', // Customize the primary color
+      light: '#90E0EF', // Optional: lighter shade of primary
+      dark: '#0077B6',  // Optional: darker shade of primary
     },
     secondary: {
-      main: '#777777',  // Customize the secondary color
-      light: '#999999', // Optional: lighter shade of secondary
-      dark: '#555555',  // Optional: darker shade of secondary
+      main: '#90E0EF',  // Customize the secondary color
+      light: '#CAF0F8', // Optional: lighter shade of secondary
+      dark: '#03045E',  // Optional: darker shade of secondary
     },
     background: {
       default: '#f4f6f8',  // Background color for the app
-      paper: '#ffffff',    // Background color for Paper components
+      paper: '#dAF0F8',    // Background color for Paper components
     },
     text: {
       primary: '#333333',   // Default text color
-      secondary: '#666666', // Secondary text color
+      secondary: '#CAF0F8', // Secondary text color
     },
   },
   typography: {

@@ -1,7 +1,7 @@
 
 import { createSelector } from 'reselect'
 
-export const profileEmailSelector = createSelector(
-    [state => state.auth], 
-    auth => auth.email
+export const authProfileSelector = createSelector(
+    [state => state], 
+    state => state.profile 
 )

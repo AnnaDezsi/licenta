@@ -28,8 +28,8 @@ export const Login = () => {
         onSubmit: async (values) => {
             try {
                 const response = await api.post('/auth/login', values);
-                localStorage.setItem('token', response.data.token);
-                dispatch(setAuthProfile(response.data.email))
+                localStorage.setItem('token', response.data.token);                
+                dispatch(setAuthProfile(response.data))
                 navigate("/dashboard")
             } catch (error) {
                 if (error.response?.status === 401) {

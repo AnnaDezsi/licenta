@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/databaseInstance.js';
 import { getJWTSecret } from '../config/config.js';
 
-export const signup =  async (req, res) => {
-  const { email, password } = req.body;
+export const signup = async (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
@@ -12,6 +12,8 @@ export const signup =  async (req, res) => {
       data: {
         email,
         password: hashedPassword,
+        firstName,
+        lastName
       },
     });
     res.status(201).json({ message: 'Utilizator creat cu succes' });
@@ -35,7 +37,7 @@ export const login = async (req, res) => {
     const token = jwt.sign({ userId: user.id }, getJWTSecret(), {
       expiresIn: '1h',
     });
-    res.json({ token, email: user.email });
+    res.json({ token, email: user.email, firstName: user.firstName, lastName: user.lastName });
   } catch (error) {
     res.status(500).json({ error: 'Eroare interna' });
   }
