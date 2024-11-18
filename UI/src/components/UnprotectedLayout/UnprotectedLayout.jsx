@@ -1,14 +1,22 @@
-import { useNavigate } from "react-router-dom"
+import { Box } from '@mui/material';
+import bgImage from '../../assets/loginbg.jpg';
+import { hexToRgba } from '../../utilities/rgbConverter';
 
-export const UnprotectedLayout = ({children}) => {
-  const navigate = useNavigate();
-
-  
+export const UnprotectedLayout = ({ children }) => {
   return (
-    <div>
-        <button onClick={() => navigate("/")}>Login</button>
-        <button onClick={() => navigate("/signup")}>Inregistrare</button>
-        {children}
-    </div>
-  )
-}
+    <Box
+      sx={{
+        minHeight: '100vh',
+        backgroundSize: 'cover',
+        backgroundImage: (theme) =>
+          `linear-gradient(135deg, ${hexToRgba(theme.palette.primary.main, 0.95)}, ${hexToRgba(theme.palette.primary.light, 0.9)}), url(${bgImage})`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {children}
+    </Box>
+  );
+};
