@@ -2,6 +2,8 @@ import { REMOVE_AUTH_PROFILE, SET_AUTH_PROFILE } from "./action";
 
 const initialState = {
     email: "",
+    firstName: "",
+    lastName: ""
   };
   
   const authReducer = (state = initialState, action) => {

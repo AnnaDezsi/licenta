@@ -5,23 +5,32 @@ import { ProtectedRoutes } from '../components/ProtectedRoutes/ProtectedRoutes';
 import { ProtectedLayout } from '../components/ProtectedLayout/ProtectedLayout';
 import { Signup } from '../pages/signup';
 import { UnprotectedLayout } from '../components/UnprotectedLayout/UnprotectedLayout';
+import { DatePersonale } from '../pages/datePersonale';
 
 
 const unprotectedRoutes = [
   {
     path: "/",
+    name: "Login",
     element: <Login />,
   },
   {
     path: "/signup",
+    name: "Inregistrare",
     element: <Signup />,
   }
 ]
 
-const protectedRoutes = [
+export const protectedRoutes = [
   {
     path: "/dashboard",
+    name: "Dashboard",
     element: <Dashboard />
+  },
+  {
+    path: "/date-personale",
+    name: "Date Personale",
+    element: <DatePersonale />
   }
 ]
 

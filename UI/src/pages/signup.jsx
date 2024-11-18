@@ -4,18 +4,21 @@ import * as yup from 'yup';
 import { TextField, Button, Container, Typography, Box, Paper, InputAdornment } from '@mui/material';
 import api from '../services/axiosConfig';
 import { useNavigate } from 'react-router-dom';
-import {useDispatch} from 'react-redux'
+import { useDispatch } from 'react-redux'
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
 import AlternateEmailOutlinedIcon from '@mui/icons-material/AlternateEmailOutlined';
 import { DividerWithText } from '../components/DividerWithText/DividerWithText';
+import PersonIcon from '@mui/icons-material/Person';
 
 const validationSchema = yup.object({
     email: yup.string().email('Te rugam sa introduci o adresa de email valida').required('Adresa de email este obligatorie'),
     password: yup.string().min(6, 'Parola trebuie sa contina minimum 6 caractere').required('Parola este obligatorie'),
+    firstName: yup.string().required('Te rugam sa introduci prenumele'),
+    lastName: yup.string().required('Te rugam sa introduci numele de familie'),
     confirmPassword: yup
-      .string()
-      .oneOf([yup.ref('password'), null], 'Parolele nu se potrivesc')
-      .required('Parola de confirmare este obligatorie'),
+        .string()
+        .oneOf([yup.ref('password'), null], 'Parolele nu se potrivesc')
+        .required('Parola de confirmare este obligatorie'),
 });
 
 export const Signup = () => {
@@ -25,13 +28,15 @@ export const Signup = () => {
         initialValues: {
             email: '',
             password: '',
+            firstName: '',
+            lastName: '',
             confirmPassword: ''
         },
         validationSchema,
         onSubmit: async (values) => {
             try {
                 const response = await api.post('/auth/signup', values);
-                localStorage.setItem('token', response.data.token);    
+                localStorage.setItem('token', response.data.token);
                 navigate("/")
             } catch (error) {
                 console.error(error?.message)
@@ -68,7 +73,43 @@ export const Signup = () => {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <AlternateEmailOutlinedIcon />  
+                                        <AlternateEmailOutlinedIcon />
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                    <TextField
+                        label="Nume de familie"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        {...formik.getFieldProps('lastName')}
+                        error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+                        helperText={formik.touched.lastName && formik.errors.lastName}
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <PersonIcon />
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                    <TextField
+                        label="Prenume"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        {...formik.getFieldProps('firstName')}
+                        error={formik.touched.firstName && Boolean(formik.errors.firstName)}
+                        helperText={formik.touched.firstName && formik.errors.firstName}
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <PersonIcon />
                                     </InputAdornment>
                                 ),
                             },
@@ -88,13 +129,13 @@ export const Signup = () => {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <LockOpenOutlinedIcon /> 
+                                        <LockOpenOutlinedIcon />
                                     </InputAdornment>
                                 ),
                             },
                         }}
                     />
-                     <TextField
+                    <TextField
                         label="Confirma parola"
                         placeholder='****'
                         type="password"
@@ -108,7 +149,7 @@ export const Signup = () => {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <LockOpenOutlinedIcon /> 
+                                        <LockOpenOutlinedIcon />
                                     </InputAdornment>
                                 ),
                             },
@@ -124,13 +165,13 @@ export const Signup = () => {
                     >
                         Inregistrare
                     </Button>
-                    <DividerWithText text="sau"/>
-                <Button
+                    <DividerWithText text="sau" />
+                    <Button
                         type="submit"
                         fullWidth
                         size="large"
                         variant="outlined"
-                        color="secondary"    
+                        color="secondary"
                         onClick={() => navigate('/login')}
                     >
                         Am deja cont
@@ -138,6 +179,6 @@ export const Signup = () => {
                 </form>
             </Container>
         </Paper>
-    
+
     );
 };
