@@ -30,7 +30,7 @@ export const Login = () => {
                 const response = await api.post('/auth/login', values);
                 localStorage.setItem('token', response.data.token);
                 dispatch(setAuthProfile(response.data.email))
-                navigate("/")
+                navigate("/dashboard")
             } catch (error) {
                 if (error.response?.status === 401) {
                     formik.setErrors({

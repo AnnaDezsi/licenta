@@ -32,7 +32,7 @@ export const Signup = () => {
             try {
                 const response = await api.post('/auth/signup', values);
                 localStorage.setItem('token', response.data.token);    
-                navigate("/login")
+                navigate("/")
             } catch (error) {
                 console.error(error?.message)
             }
