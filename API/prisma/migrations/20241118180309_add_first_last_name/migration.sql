@@ -6,5 +6,5 @@
 
 */
 -- AlterTable
-ALTER TABLE "User" ADD COLUMN     "firstName" VARCHAR(40) NOT NULL,
-ADD COLUMN     "lastName" VARCHAR(40) NOT NULL;
+ALTER TABLE "User" ADD COLUMN     "firstName" VARCHAR(40),
+ADD COLUMN     "lastName" VARCHAR(40);
