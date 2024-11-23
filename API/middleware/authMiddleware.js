@@ -1,6 +1,7 @@
 // middleware/authMiddleware.js
 import jwt from 'jsonwebtoken';
-import { getJWTSecret } from '../config/config';
+import { getJWTSecret } from '../config/config.js';
+
 
 
 export const authenticateToken = (req, res, next) => {

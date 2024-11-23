@@ -1,21 +1,26 @@
-import { REMOVE_AUTH_PROFILE, SET_AUTH_PROFILE } from "./action";
+import { REMOVE_AUTH_PROFILE, SET_AUTH_PROFILE, SET_PERSONAL_DATA } from "./action";
 
 const initialState = {
-    email: "",
-    firstName: "",
-    lastName: ""
-  };
-  
-  const authReducer = (state = initialState, action) => {
-    switch (action.type) {
-      case  SET_AUTH_PROFILE:
-        return action.payload;
-      case REMOVE_AUTH_PROFILE:
-        return initialState;
-      default:
-        return state;
+  email: "",
+  personal: null
+};
+
+const authReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case SET_AUTH_PROFILE:
+      return action.payload;
+    case REMOVE_AUTH_PROFILE:
+      return initialState;
+    case SET_PERSONAL_DATA: {
+      return {
+        ...state,
+        personal: action.payload
+      }
     }
-  };
-  
-  export default authReducer;
-  
+
+    default:
+      return state;
+  }
+};
+
+export default authReducer;

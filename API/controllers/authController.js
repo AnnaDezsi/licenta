@@ -4,7 +4,7 @@ import prisma from '../config/databaseInstance.js';
 import { getJWTSecret } from '../config/config.js';
 
 export const signup = async (req, res) => {
-  const { email, password, firstName, lastName } = req.body;
+  const { email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
@@ -12,8 +12,6 @@ export const signup = async (req, res) => {
       data: {
         email,
         password: hashedPassword,
-        firstName,
-        lastName
       },
     });
     res.status(201).json({ message: 'Utilizator creat cu succes' });
@@ -37,9 +35,33 @@ export const login = async (req, res) => {
     const token = jwt.sign({ userId: user.id }, getJWTSecret(), {
       expiresIn: '1h',
     });
-    res.json({ token, email: user.email, firstName: user.firstName, lastName: user.lastName });
-  } catch (error) {
+    res.json({ token, email: user.email });
+  } catch (error) {    
+    console.error(error.message)
     res.status(500).json({ error: 'Eroare interna' });
   }
 }
 
+
+export const verifySession = async (req, res) => {
+  const {userId} = req.user  
+  try{
+    const personalData = await prisma.personal_Data.findUnique({
+      where: {
+        userId: userId,
+      }   
+    });
+
+    if(!personalData){
+      return res.status(200).json({
+        message: "Trebuie sa completati datele personale pentru a continua accesarea aplicatiei",
+        data: null
+      })
+    }
+
+    res.status(200).json({message: "Validare verificata cu success!", data: personalData})
+  }catch(error){
+    console.error(error.message);
+    
+  }
+}

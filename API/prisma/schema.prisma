@@ -7,13 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
+enum Role {
+  ADMIN
+  CLIENT
+  DOCTOR
+}
 
 model User {
-  id        Int    @id @default(autoincrement())
-  email     String @unique
-  password  String
-  firstName String @db.VarChar(40)
-  lastName  String @db.VarChar(40)
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
+  password      String
+  role          Role          @default(CLIENT)
+  createdAt     DateTime      @default(now())
+  personalData  Personal_Data?
+}
+
+model Personal_Data {
+  id          Int    @id @default(autoincrement())
+  cnp         String @db.VarChar(13) @unique
+  firstName   String @db.VarChar(40)
+  lastName    String @db.VarChar(40)
+  phoneNumber String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  userId      Int     @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

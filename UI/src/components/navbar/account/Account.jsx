@@ -1,6 +1,6 @@
-import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material"
+import { Avatar, Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material"
 import { useSelector } from "react-redux"
-import { authProfileSelector } from "../../../store/auth/selectors"
+import { personalDataSelector } from "../../../store/auth/selectors"
 import { randomRGB } from "../../../utilities/rgbRandomHex"
 import { useMemo, useState } from "react"
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom"
 
 export const Account = () => {    
     const navigate = useNavigate()
-    const authProfile = useSelector(authProfileSelector)
+    const personalData = useSelector(personalDataSelector)
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -29,8 +29,8 @@ export const Account = () => {
     }
 
     const getInitialFromNames = () => {
-        if (authProfile?.firstName && authProfile?.lastName) {
-            return authProfile.firstName[0].toUpperCase() + "" + authProfile.lastName[0].toUpperCase()
+        if (personalData?.firstName && personalData?.lastName) {
+            return personalData.firstName[0].toUpperCase() + "" + personalData.lastName[0].toUpperCase()
         }
         return "N/A"
     }

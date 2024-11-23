@@ -8,7 +8,7 @@ import { UnprotectedLayout } from '../components/UnprotectedLayout/UnprotectedLa
 import { DatePersonale } from '../pages/datePersonale';
 
 
-const unprotectedRoutes = [
+export const unprotectedRoutes = [
   {
     path: "/",
     name: "Login",
