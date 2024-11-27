@@ -1,7 +1,7 @@
 import { Container } from '@mui/material'
 import React from 'react'
 
-export const ResponsiveLayout = ({children, paddingVertical = 0}) => {
+export const PageContainer = ({children, paddingVertical = 0}) => {
   return (
     <Container
         maxWidth={false}

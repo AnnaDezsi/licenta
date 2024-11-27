@@ -1,5 +1,5 @@
 import { useFormik } from "formik"
-import { ResponsiveLayout } from "../components/PageContainer/PageContainer"
+import { PageContainer } from "../components/PageContainer/PageContainer"
 import { personalDataSelector } from "../store/auth/selectors"
 import { useDispatch, useSelector } from "react-redux"
 import { Button, InputAdornment, List, ListItem, ListItemText, TextField, Typography } from "@mui/material"
@@ -11,6 +11,7 @@ import { ConfirmationModal } from "../components/ConfirmationModal/ConfirmationM
 import api from "../services/axiosConfig"
 import { setAuthPersonalData } from "../store/auth/action"
 import { v4 as uuidv4 } from 'uuid';
+import { PageHeader } from "../components/PageHeader/PageHeader"
 
 const mappedFormValueToRomanian = {
   cnp: 'Cod Numeric Personal',
@@ -99,10 +100,8 @@ export const DatePersonale = () => {
 
         </List>
       </ConfirmationModal>
-      <ResponsiveLayout paddingVertical={2}>
-        <Typography variant="h1">
-          Date personale
-        </Typography>
+      <PageContainer paddingVertical={2}>
+      <PageHeader pageName="Date personale" caption="Revizuie datele tale personale"/>
         <form>
           <TextField
             label="Nume de familie"
@@ -183,7 +182,7 @@ export const DatePersonale = () => {
           />
           <Button type="button" onClick={() => setConfirming(true)} disabled={isSubmitDisabled} fullWidth size='large' variant='contained' color='primary' sx={{ marginTop: 2 }}>Modifica datele</Button>
         </form>
-      </ResponsiveLayout>
+      </PageContainer>
     </>
   )
 }
