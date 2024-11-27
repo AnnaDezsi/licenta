@@ -6,6 +6,7 @@ import { ProtectedLayout } from '../components/ProtectedLayout/ProtectedLayout';
 import { Signup } from '../pages/signup';
 import { UnprotectedLayout } from '../components/UnprotectedLayout/UnprotectedLayout';
 import { DatePersonale } from '../pages/datePersonale';
+import { JurnalMedical } from '../pages/jurnalMedical';
 
 
 export const unprotectedRoutes = [
@@ -31,6 +32,11 @@ export const protectedRoutes = [
     path: "/date-personale",
     name: "Date Personale",
     element: <DatePersonale />
+  },
+  {
+    path: "/jurnal-medical",
+    name: "Jurnal medical",
+    element: <JurnalMedical />
   }
 ]
 

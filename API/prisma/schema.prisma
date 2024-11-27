@@ -13,6 +13,11 @@ enum Role {
   DOCTOR
 }
 
+enum Analyze_Jornul_Type{
+  ACTIV
+  RETRO
+}
+
 model User {
   id            Int           @id @default(autoincrement())
   email         String        @unique
@@ -20,6 +25,7 @@ model User {
   role          Role          @default(CLIENT)
   createdAt     DateTime      @default(now())
   personalData  Personal_Data?
+  jurnalMedical Jurnal_Medical?
 }
 
 model Personal_Data {
@@ -35,3 +41,19 @@ model Personal_Data {
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Boli{  
+  id          Int    @id @default(autoincrement())
+  name        String @db.VarChar(125)
+  description String 
+}
+
+
+model Jurnal_Medical{  
+  id          Int    @id @default(autoincrement())  
+  userId      Int     @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)  
+  status      Analyze_Jornul_Type  @default(ACTIV)
+  medicalAnalyzes String
+  createdAt   DateTime @default(now())  
+  updatedAt   DateTime @default(now())
+}

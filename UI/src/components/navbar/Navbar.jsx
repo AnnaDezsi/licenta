@@ -3,7 +3,7 @@ import { Logo } from "../logo/Logo"
 import { Menu } from "./menu/Menu"
 import { Account } from "./account/Account"
 import theme from "../../services/theme"
-import { ResponsiveLayout } from "../PageContainer/PageContainer"
+import { PageContainer } from "../PageContainer/PageContainer"
 
 export const Navbar = () => {
     return (
@@ -11,11 +11,11 @@ export const Navbar = () => {
             backgroundColor: theme.palette.primary.main,
             borderRadius: 0
         }}>
-            <ResponsiveLayout>
+            <PageContainer>
                 <Grid2 container sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    padding: '1em',
+                    padding: '1em 0',
 
                 }}>
                     <Grid2 size="auto">
@@ -33,7 +33,7 @@ export const Navbar = () => {
                     </Grid2>
                     {/* dropdown */}
                 </Grid2>
-            </ResponsiveLayout>
+            </PageContainer>
         </Paper>
 
     )
