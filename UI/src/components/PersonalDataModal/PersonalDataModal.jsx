@@ -1,10 +1,12 @@
-import { Box, Button, InputAdornment, Modal, Paper, TextField, Typography } from '@mui/material'
+import { Button, InputAdornment, Modal, Paper, TextField, Typography } from '@mui/material'
 import { useFormik } from 'formik'
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
+import HomeIcon from '@mui/icons-material/Home';
 import api from '../../services/axiosConfig';
 import { useDispatch } from 'react-redux';
 import { setAuthPersonalData } from '../../store/auth/action';
+
 export const PersonalDataModal = ({ isOpen = false, setModalOpen }) => {
     const dispatch = useDispatch();
 
@@ -13,6 +15,7 @@ export const PersonalDataModal = ({ isOpen = false, setModalOpen }) => {
             cnp: "",
             firstName: "",
             lastName: "",
+            address: "",
             phoneNumber: "",
         },
         onSubmit: async (values) => {
@@ -91,6 +94,26 @@ export const PersonalDataModal = ({ isOpen = false, setModalOpen }) => {
                                 startAdornment: (
                                     <InputAdornment position="start">
                                         <LocalPhoneIcon />
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                    <TextField
+                        label="Adresa"
+                        placeholder='Str. Lucian Blaga, nr. 4, Mun. Baia Mare, Judet Maramures'
+                        type="text"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        {...formik.getFieldProps('address')}
+                        error={formik.touched.address && Boolean(formik.errors.address)}
+                        helperText={formik.touched.address && formik.errors.address}
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <HomeIcon />
                                     </InputAdornment>
                                 ),
                             },

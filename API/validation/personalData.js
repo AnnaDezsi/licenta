@@ -14,8 +14,11 @@ export const personalDataSetupSchema = yup.object().shape({
   lastName: yup
     .string()
     .min(2, "Numele este invalid")
-    .required("Vă rugăm să introduceți numele")
-    .required("Vă rugăm să introduceți data nașterii"),
+    .required("Vă rugăm să introduceți numele"),
+    address: yup
+    .string()
+    .min(5, "Adresa trebuie sa contina mai mult de 5 caractere")
+    .required("Adresa este obligatorie"),
   phoneNumber: yup
     .string()
     .required("Vă rugăm să introduceți numărul de telefon"),
