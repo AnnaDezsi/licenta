@@ -13,7 +13,7 @@ enum Role {
   DOCTOR
 }
 
-enum Analyze_Jornul_Type{
+enum Analyze_Jornul_Type {
   ACTIV
   RETRO
 }
