@@ -22,27 +22,8 @@ const optionsMedicamente = [
     },
 ]
 
-// const Control = ({ children, ...props }) => {
-//     const { text } = props.selectProps
-//     return (
-//         <components.Control {...props}>
-//             {text && <Box sx={{ 
-//                 backgroundColor: theme => theme.palette.primary.dark, 
-//                 height: '100%', 
-//                 display: 'flex', 
-//                 alignItems: 'center', 
-//                 padding: '0 .4em' 
-//                 }}>
-//                 <Typography sx={{
-//                     color: "#fff",
-//                 }}> {text}</Typography>
-//             </Box>}
-//             {children}
-//         </components.Control>
-//     );
-// };
 
-export const AddMedicineForm = ({ isOpen, handleClose }) => {
+export const AddMedicineForm = () => {
 
     const medicalJournalForm = useFormik({
         initialValues: {
