@@ -6,21 +6,26 @@ const theme = createTheme({
     primary: {
       main: '#00B4D8', // Customize the primary color
       light: '#90E0EF', // Optional: lighter shade of primary
-      dark: '#0077B6',  // Optional: darker shade of primary
+      dark: '#0077B6', 
+      contrastText:"#f4f6f8" // Optional: darker shade of primary
     },
     secondary: {
-      main: '#333333',  // Customize the secondary color
-      light: '#CAF0F8', // Optional: lighter shade of secondary
-      dark: '#03045E',  // Optional: darker shade of secondary
+      main: '#444444',  // Customize the secondary color
+      light: '#666666', // Optional: lighter shade of secondary
+      dark: '#222222',  // Optional: darker shade of secondary
     },
     background: {
       default: '#f4f6f8',  // Background color for the app
       paper: '#dAF0F8',    // Background color for Paper components
     },
     text: {
-      primary: '#333333',   // Default text color
-      secondary: '#CAF0F8', // Secondary text color
+      primary: '#666666',
+      secondary: '#666666', // Secondary text color
+         // Default text color
     },
+    error: {
+      main: '#d32f2f'
+    }
   },
   typography: {
     fontFamily: '"Poppins", sans-serif',
@@ -33,8 +38,7 @@ const theme = createTheme({
       fontWeight: 600,
     },
     body1: {
-      fontSize: '1rem',
-      color: '#333333',
+      fontSize: '1rem'
     },
   },
   spacing: 8, // Default spacing (can be accessed as multiples of 8)
@@ -46,14 +50,16 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 4,
+          boxShadow: "none",
         },
       },
     },
     MuiPaper: {
         styleOverrides: {
           root: {
-            borderRadius: 4,
-            boxShadow: '0px 4px 9px rgba(0, 0, 0, 0.1)', // Custom drop shadow for Paper
+            borderRadius: 8,
+            border: '1px solid #33333330',
+            boxShadow: '0px 4px 9px #00B4D820', // Custom drop shadow for Paper
           },
         },
       },
