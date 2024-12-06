@@ -7,6 +7,9 @@ import { Signup } from '../pages/signup';
 import { UnprotectedLayout } from '../components/UnprotectedLayout/UnprotectedLayout';
 import { DatePersonale } from '../pages/datePersonale';
 import { JurnalMedical } from '../pages/jurnalMedical';
+import { Informatii } from '../pages/informatii/informatii';
+import { Categorii } from '../pages/informatii/categorii';
+import { Article } from '../pages/informatii/article';
 
 
 export const unprotectedRoutes = [
@@ -37,6 +40,26 @@ export const protectedRoutes = [
     path: "/jurnal-medical",
     name: "Jurnal medical",
     element: <JurnalMedical />
+  },
+  {
+    path: "/informatii",
+    name: "Informatii",
+    element: <Informatii />,
+    compactNavigation: true,
+    children: [
+      {
+        path: "categorii-boli",
+        name: "Categorii Boli",
+        element: <Categorii />,
+        children: [
+          {
+            path: ":articleName",
+            name: "Articol",
+            element: <Article />
+          }
+        ]
+      }
+    ]
   }
 ]
 

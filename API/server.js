@@ -7,6 +7,8 @@ import cors from 'cors';
 import testRouter from './routes/testRouter.js';
 import authRouter from './routes/authRouter.js';
 import personalDataRouter from './routes/personalDataRouter.js';
+import infoRouter from './routes/infoRouter.js';
+import fileRouter from './routes/fileRouter.js';
 import prisma from './config/databaseInstance.js';
 
 dotenv.config();
@@ -20,6 +22,8 @@ app.use(cors())
 app.use('/api/test', testRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/personal', personalDataRouter);
+app.use('/api/info', infoRouter);
+app.use('/api/file', fileRouter);
 
 
 app.use((req, res) => {

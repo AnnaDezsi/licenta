@@ -10,7 +10,13 @@ const Heading6 = ({ children }) => <Typography variant="h6" sx={{ mb: 2 }}>{chil
 const List = ({ items }) => (
   <ul>
     {items.map((item, index) => (
-      <li key={index}> <Typography>{item}</Typography></li>
+      <li key={index}>
+        <Typography>
+          {item.parts.map((part, partIndex) =>
+            part.type === "bold" ? <b key={partIndex}>{part.text}</b> : part.text
+          )}
+        </Typography>
+      </li>
     ))}
   </ul>
 );
@@ -21,6 +27,15 @@ const Paragraph = ({ parts }) => (
     )}
   </Typography>
 );
+
+
+const Spacing = ({ value }) => {
+  const spacingValue = value >= 0 ? `${value * 16}px` : "0px";
+
+  return <div style={{ margin: spacingValue }}></div>;
+};
+
+
 
 export const TextParser = ({ text }) => {
   const parsedContent = useTextParser(text);
@@ -45,6 +60,8 @@ export const TextParser = ({ text }) => {
             return <List key={index} items={block.items} />;
           case "paragraph":
             return <Paragraph key={index} parts={block.parts} />;
+          case "spacing":
+            return <Spacing key={index} value={block.value} />;
           default:
             return null;
         }
