@@ -9,6 +9,12 @@ import { getAllCategories } from '../../store/info/selectors'
 import { AsyncImage } from '../../components/AsyncImage/AsyncImage'
 import { Outlet, useMatches, useNavigate } from 'react-router-dom'
 
+const optionalStyle={
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)'
+}
 
 export const Categorii = () => {
   const dispatch = useDispatch()
@@ -57,9 +63,11 @@ export const Categorii = () => {
                   <Box sx={{
                     display: 'block',
                     width: 1,
-                    height: 400
+                    height: 320 ,
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}>
-                    <AsyncImage style='contained' imageId={data?.imageId} width="full" height="full" />
+                    <AsyncImage style='stretch' imageId={data?.imageId} width="711" height="400" optionalStyle={optionalStyle} />
                   </Box>
                   <CardContent><Typography gutterBottom variant="h5" component="div">
                     {data?.name}
