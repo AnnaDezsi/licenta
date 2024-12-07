@@ -1,27 +1,80 @@
-import { Box, Button } from "@mui/material"
+import { Box, Button, MenuItem } from "@mui/material"
 import { protectedRoutes } from "../../../services/router"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import MUIMenu from '@mui/material/Menu';
 
-export const Menu = () => {
+
+const NavigationItem = ({ route }) => {
     const navigate = useNavigate()
     const handleChangePage = useCallback((path) => {
         navigate(path)
     }, [])
 
+    return <Button
+        sx={{ color: '#fff' }} variant="text" onClick={() => handleChangePage(route.path)}>{route.name}</Button>
+}
+
+const NavigationItemWithMenu = ({ route }) => {
+    const navigate = useNavigate()
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleExpand = useCallback((event) => {
+        setAnchorEl(event.currentTarget);
+    }, [])
+
+    const handleChangePage = useCallback((parentPath, relativePath) => {
+        navigate(`${parentPath}/${relativePath}`)
+        handleClose()
+    }, [])
+
+    if (!route?.compactNavigation || !route?.children.length) return;
+
+    return (
+        <Box>
+            <Button
+                id="basic-button"
+                aria-controls={open ? 'basic-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? 'true' : undefined}
+                onClick={event => handleExpand(event)}
+                sx={{ color: '#fff', cursor: 'pointer' }}
+            >
+                {route.name}
+            </Button>
+            <MUIMenu
+                id="basic-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                    'aria-labelledby': 'basic-button',
+                }}
+            >
+                {route?.children.map(childRoute => <MenuItem key={`${route.path}-${childRoute.path}`} onClick={() => handleChangePage(route.path, childRoute.path)}>{childRoute.name}</MenuItem>)}
+
+            </MUIMenu>
+        </Box>
+    )
+}
+
+export const Menu = () => {
+
+
     return (
         <Box sx={{
             display: 'flex'
         }}>
-            {protectedRoutes.map(route => {
-                return (
-                    <div key={route.name}>
-                        <Button style={{
-                            color: 'white'
-                        }} variant="text" onClick={() => handleChangePage(route.path)}>{route.name}</Button>
-                    </div>
-                )
-            })}
+            {protectedRoutes.map(route => 
+            !!route?.compactNavigation ? 
+                <NavigationItemWithMenu key={route.name} route={route} /> : 
+                <NavigationItem key={route.name} route={route} />
+            )}
         </Box>
     )
 }

@@ -25,7 +25,7 @@ model User {
   role          Role          @default(CLIENT)
   createdAt     DateTime      @default(now())
   personalData  Personal_Data?
-  jurnalMedical Jurnal_Medical?
+  files         FileS3[]
 }
 
 model Personal_Data {
@@ -41,20 +41,26 @@ model Personal_Data {
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Boli{  
-  id          Int    @id @default(autoincrement())
-  name        String @db.VarChar(125)
-  description String 
+
+model Informatii_Categorie_Boala{  
+  id          Int    @id @default(autoincrement())  
+  name        String @db.VarChar(50) @unique
+  description String @db.Text
+  content     String @db.Text
+  imageId     Int?   @unique
+  image       FileS3?  @relation(fields: [imageId], references: [id]) // One-to-one relation with FileS3
 }
 
+model FileS3 {
+  id           Int      @id @default(autoincrement())
+  name         String   
+  uploaderId   Int      
+  uploadedAt   DateTime @default(now()) 
+  isDeleted    Boolean  @default(false) 
+  description  String?  
+  mimeType     String
+  uploader     User     @relation(fields: [uploaderId], references: [id])
+  informatii   Informatii_Categorie_Boala? @relation
 
-model Jurnal_Medical{  
-  id          Int    @id @default(autoincrement())  
-  userId      Int     @unique
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)  
-  status      Analyze_Jornul_Type  @default(ACTIV)
-  medicalAnalyzes String
-  createdAt   DateTime @default(now())  
-  updatedAt   DateTime @default(now())
 }
 
