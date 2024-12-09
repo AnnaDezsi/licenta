@@ -1,15 +1,17 @@
-import { Avatar, Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material"
+import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material"
 import { useSelector } from "react-redux"
-import { personalDataSelector } from "../../../store/auth/selectors"
+import { authProfileSelector } from "../../../store/auth/selectors"
 import { randomRGB } from "../../../utilities/rgbRandomHex"
 import { useMemo, useState } from "react"
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from "react-router-dom"
+import { USER_ROLE } from "../../../services/router"
 
-export const Account = () => {    
+export const Account = () => {
     const navigate = useNavigate()
-    const personalData = useSelector(personalDataSelector)
+    const { personal: personalData, role } = useSelector(authProfileSelector)
+
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -35,7 +37,7 @@ export const Account = () => {
         return "N/A"
     }
 
-    const getRandomHexColor = () => useMemo(() => randomRGB() , [])
+    const getRandomHexColor = () => useMemo(() => randomRGB(), [])
 
 
     return (
@@ -54,9 +56,20 @@ export const Account = () => {
                         border: "2px solid white",
                         height: "60px",
                         width: "60px",
-                    }}><Typography variant="h6">
-                        {getInitialFromNames()}
-                    </Typography></Avatar>
+                    }}>
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+
+                        }}>
+                        {role === USER_ROLE.DOCTOR && <Typography sx={{p:0, m:0, lineHeight: .5}} variant="body2">
+                            Dr.
+                        </Typography>}
+                        <Typography sx={{p:0, m:0}} variant="h6">
+                            {getInitialFromNames()}
+                        </Typography>
+                    </Box>
+                </Avatar>
             </IconButton>
             <Menu
                 anchorEl={anchorEl}

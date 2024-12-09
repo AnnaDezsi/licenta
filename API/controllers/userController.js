@@ -32,7 +32,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ error: 'Adresa de email sau parola invalida' });
     }
 
-    const token = jwt.sign({ userId: user.id }, getJWTSecret(), {
+    const token = jwt.sign({ userId: user.id, role: user.role }, getJWTSecret(), {
       expiresIn: '1h',
     });
     res.json({ token, email: user.email });
@@ -44,7 +44,10 @@ export const login = async (req, res) => {
 
 
 export const verifySession = async (req, res) => {
-  const {userId} = req.user  
+  const {userId, role} = req.user  
+  
+  let userRole;
+
   try{
     const personalData = await prisma.personal_Data.findUnique({
       where: {
@@ -52,16 +55,32 @@ export const verifySession = async (req, res) => {
       }   
     });
 
+    if(!role){
+      const user = await prisma.user.findUnique({
+        where: {id: userId}
+      })      
+      userRole = user.role;
+      
+    }else{
+      userRole = role;      
+    }    
+
     if(!personalData){
       return res.status(200).json({
         message: "Trebuie sa completati datele personale pentru a continua accesarea aplicatiei",
-        data: null
+        data: {
+          personalData: null,
+          role: userRole
+        }
       })
     }
 
-    res.status(200).json({message: "Validare verificata cu success!", data: personalData})
+    res.status(200).json({message: "Validare verificata cu success!", data: {
+      personalData,
+      role: userRole
+    }})
   }catch(error){
-    console.error(error.message);
-    
+    console.error(error.message);    
   }
 }
+

@@ -1,8 +1,9 @@
-import { REMOVE_AUTH_PROFILE, SET_AUTH_PROFILE, SET_PERSONAL_DATA } from "./action";
+import { REMOVE_AUTH_PROFILE, SET_AUTH_PROFILE, SET_AUTH_ROLE, SET_PERSONAL_DATA } from "./action";
 
 const initialState = {
   email: "",
-  personal: null
+  personal: null,
+  role: null
 };
 
 const authReducer = (state = initialState, action) => {
@@ -15,6 +16,14 @@ const authReducer = (state = initialState, action) => {
       return {
         ...state,
         personal: action.payload
+      }
+    }
+    case SET_AUTH_ROLE: {
+      console.log(action.payload);
+      
+      return {
+        ...state,
+        role: action.payload
       }
     }
 

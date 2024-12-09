@@ -10,7 +10,13 @@ import { JurnalMedical } from '../pages/jurnalMedical';
 import { Informatii } from '../pages/informatii/informatii';
 import { Categorii } from '../pages/informatii/categorii';
 import { Article } from '../pages/informatii/article';
+import { Pacienti } from '../pages/pacienti/pacienti';
 
+export const USER_ROLE = {
+  ADMIN: 'ADMIN',
+  DOCTOR: 'DOCTOR',
+  CLIENT: 'CLIENT'
+}
 
 export const unprotectedRoutes = [
   {
@@ -29,32 +35,44 @@ export const protectedRoutes = [
   {
     path: "/dashboard",
     name: "Dashboard",
+    role: [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.CLIENT],
     element: <Dashboard />
   },
   {
     path: "/date-personale",
-    name: "Date Personale",
+    name: "Date Personale",    
+    role: [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.CLIENT],
     element: <DatePersonale />
   },
   {
     path: "/jurnal-medical",
     name: "Jurnal medical",
+    role: [USER_ROLE.CLIENT],
     element: <JurnalMedical />
+  },  
+  {
+    path: "/pacienti",
+    name: "Pacienti",
+    role: [USER_ROLE.DOCTOR],
+    element: <Pacienti />
   },
   {
     path: "/informatii",
     name: "Informatii",
-    element: <Informatii />,
+    element: <Informatii />,    
+    role: [USER_ROLE.CLIENT, USER_ROLE.DOCTOR, USER_ROLE.ADMIN],
     compactNavigation: true,
     children: [
       {
         path: "categorii-boli",
         name: "Categorii Boli",
+        role: [USER_ROLE.CLIENT, USER_ROLE.DOCTOR, USER_ROLE.ADMIN],
         element: <Categorii />,
         children: [
           {
             path: ":articleName",
             name: "Articol",
+            role: [USER_ROLE.CLIENT,, USER_ROLE.DOCTOR, USER_ROLE.ADMIN],
             element: <Article />
           }
         ]

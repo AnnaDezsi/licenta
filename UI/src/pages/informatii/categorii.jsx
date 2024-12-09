@@ -8,8 +8,9 @@ import { PageHeader } from '../../components/PageHeader/PageHeader'
 import { getAllCategories } from '../../store/info/selectors'
 import { AsyncImage } from '../../components/AsyncImage/AsyncImage'
 import { Outlet, useMatches, useNavigate } from 'react-router-dom'
+import { v4 as uuidv4 } from 'uuid';
 
-const optionalStyle={
+const optionalStyle = {
   position: 'absolute',
   top: '50%',
   left: '50%',
@@ -35,7 +36,7 @@ export const Categorii = () => {
   }, [onParentPage])
 
   const handleNavigateToArticle = useCallback((pagePath) => {
-      navigate(pagePath)
+    navigate(pagePath)
   }, [categories])
 
   if (!onParentPage) {
@@ -57,22 +58,31 @@ export const Categorii = () => {
       <PageContainer>
         <Grid2 container alignItems="center" spacing={2}>
           {(categories && !!Object.keys(categories).length) ? Object.entries(categories).map(([categories, data]) => {
+            const UUID = uuidv4();
             return (
-              <Grid2 size={4}>
+              <Grid2 size={4} key={UUID}>
                 <Card sx={{ backgroundColor: theme => theme.palette.background.default }}>
                   <Box sx={{
                     display: 'block',
                     width: 1,
-                    height: 320 ,
+                    height: 320,
                     position: 'relative',
                     overflow: 'hidden'
                   }}>
-                    <AsyncImage style='stretch' imageId={data?.imageId} width="711" height="400" optionalStyle={optionalStyle} />
+                    <AsyncImage style='stretch' imageId={data?.imageId} 
+                    width="711" height="400"
+                     optionalStyle={optionalStyle} />
                   </Box>
                   <CardContent><Typography gutterBottom variant="h5" component="div">
                     {data?.name}
                   </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="body2" sx={{
+                      color: 'text.secondary',
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                    }}>
                       {data?.description}
                     </Typography>
                   </CardContent>

@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import api from "../../services/axiosConfig";
 import { unprotectedRoutes } from "../../services/router";
 import { useDispatch, useSelector } from "react-redux";
-import { setAuthPersonalData } from "../../store/auth/action";
+import { setAuthPersonalData, setAuthProfileRole } from "../../store/auth/action";
 import { personalDataSelector } from "../../store/auth/selectors";
 import { PersonalDataModal } from "../PersonalDataModal/PersonalDataModal";
 
@@ -29,10 +29,12 @@ export const ProtectedRoutes = ({ children }) => {
 
             return response.data.data
         })
-            .then(data => {                
-                if((!personalDataAlreadySetup && data)){
-                    dispatch(setAuthPersonalData(data))
-                }else if(!data){
+            .then(data => {   
+                // debugger
+                dispatch(setAuthProfileRole(data.role))             
+                if((!personalDataAlreadySetup && data.personalData)){
+                    dispatch(setAuthPersonalData(data.personalData))
+                }else if(!data.personalData){
                     setPersonalDataModalOpen(true)
                 }
             })
