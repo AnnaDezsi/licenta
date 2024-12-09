@@ -10,3 +10,4 @@ export const personalDataSelector = createSelector(
     [authProfileSelector], 
     state => state.personal
 )
+

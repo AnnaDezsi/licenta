@@ -5,7 +5,7 @@ import { logRequest } from './config/index.js';
 import checkDbConnection from './utils/runningDatabase.js';
 import cors from 'cors';
 import testRouter from './routes/testRouter.js';
-import authRouter from './routes/authRouter.js';
+import userRouter from './routes/userRouter.js';
 import personalDataRouter from './routes/personalDataRouter.js';
 import infoRouter from './routes/infoRouter.js';
 import fileRouter from './routes/fileRouter.js';
@@ -20,7 +20,7 @@ app.use(cors())
 
 
 app.use('/api/test', testRouter);
-app.use('/api/auth', authRouter);
+app.use('/api/auth', userRouter);
 app.use('/api/personal', personalDataRouter);
 app.use('/api/info', infoRouter);
 app.use('/api/file', fileRouter);

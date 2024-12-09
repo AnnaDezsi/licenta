@@ -32,7 +32,10 @@ export const AsyncImage = ({ imageId, width = "full", height = "full", optionalS
     }, [imageId]);
 
     if (loading) {
-        return <Skeleton variant="rectangular" width={`${width === "full" ? '100%' : width}`} height={`${width === "full" ? '400px' : height}`} />
+        return <Skeleton variant="rectangular" 
+        height={(!!height && height !== 'full') && parseInt(height)}
+         width={(!!width && width !== 'full') && parseInt(width)} 
+        />
 
     }
 

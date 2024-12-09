@@ -1,12 +1,15 @@
 import { Box, Button, MenuItem } from "@mui/material"
-import { protectedRoutes } from "../../../services/router"
+import { protectedRoutes, USER_ROLE } from "../../../services/router"
 import { useCallback, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import MUIMenu from '@mui/material/Menu';
+import { useSelector } from "react-redux";
+import { authProfileSelector } from "../../../store/auth/selectors";
 
 
 const NavigationItem = ({ route }) => {
     const navigate = useNavigate()
+
     const handleChangePage = useCallback((path) => {
         navigate(path)
     }, [])
@@ -63,17 +66,32 @@ const NavigationItemWithMenu = ({ route }) => {
     )
 }
 
+const filterRoutesByRole = (routes, role) => {
+    return routes
+        .filter(route => route.role.includes(role)) // Filter routes based on role
+        .map(route => ({
+            ...route,
+            children: route.children
+                ? filterRoutesByRole(route.children, role) // Recursively filter children
+                : [], // If no children, keep as an empty array
+        }));
+};
+
 export const Menu = () => {
 
+    const { role } = useSelector(authProfileSelector);
+    const currentRole = USER_ROLE[role];
 
+    const findRoutesAvailable = filterRoutesByRole(protectedRoutes, currentRole)
+    
     return (
         <Box sx={{
             display: 'flex'
         }}>
-            {protectedRoutes.map(route => 
-            !!route?.compactNavigation ? 
-                <NavigationItemWithMenu key={route.name} route={route} /> : 
-                <NavigationItem key={route.name} route={route} />
+            {findRoutesAvailable.map(route =>
+                !!route?.compactNavigation ?
+                    <NavigationItemWithMenu key={route.name} route={route} /> :
+                    <NavigationItem key={route.name} route={route} />
             )}
         </Box>
     )
