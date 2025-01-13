@@ -7,6 +7,7 @@ import cors from 'cors';
 import testRouter from './routes/testRouter.js';
 import userRouter from './routes/userRouter.js';
 import personalDataRouter from './routes/personalDataRouter.js';
+import medicalTestsRouter from './routes/medicalTestsRouter.js';
 import infoRouter from './routes/infoRouter.js';
 import fileRouter from './routes/fileRouter.js';
 import prisma from './config/databaseInstance.js';
@@ -24,7 +25,7 @@ app.use('/api/auth', userRouter);
 app.use('/api/personal', personalDataRouter);
 app.use('/api/info', infoRouter);
 app.use('/api/file', fileRouter);
-
+app.use('/api/medical-tests', medicalTestsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'There is no such path' });

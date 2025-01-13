@@ -7,6 +7,97 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                                           Int             @id @default(autoincrement())
+  email                                        String          @unique
+  password                                     String
+  role                                         Role            @default(CLIENT)
+  createdAt                                    DateTime        @default(now())
+  files                                        FileS3[]
+  personalData                                 Personal_Data?
+  medical_tests_medical_tests_doctor_idToUser  medical_tests[] @relation("medical_tests_doctor_idToUser")
+  medical_tests_medical_tests_patient_idToUser medical_tests[] @relation("medical_tests_patient_idToUser")
+}
+
+model Personal_Data {
+  id          Int      @id @default(autoincrement())
+  cnp         String   @unique @db.VarChar(13)
+  firstName   String   @db.VarChar(40)
+  lastName    String   @db.VarChar(40)
+  address     String   @db.VarChar(200)
+  phoneNumber String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  userId      Int      @unique
+  pregnancies Int?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Informatii_Categorie_Boala {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique @db.VarChar(50)
+  description String
+  content     String
+  imageId     Int?    @unique
+  image       FileS3? @relation(fields: [imageId], references: [id])
+}
+
+model FileS3 {
+  id          Int                         @id @default(autoincrement())
+  name        String
+  uploaderId  Int
+  uploadedAt  DateTime                    @default(now())
+  isDeleted   Boolean                     @default(false)
+  description String?
+  mimeType    String
+  uploader    User                        @relation(fields: [uploaderId], references: [id])
+  informatii  Informatii_Categorie_Boala?
+}
+
+model medical_categories {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  description   String?
+  medical_tests medical_tests[]
+  parameters    parameters[]
+}
+
+model medical_tests {
+  id                                  Int                @id @default(autoincrement())
+  category_id                         Int
+  doctor_id                           Int?
+  patient_id                          Int
+  date                                DateTime           @db.Timestamp(6)
+  title                               String             @db.VarChar(255)
+  institution                         String?            @db.VarChar(255)
+  doctor_notes                        String?
+  medical_categories                  medical_categories @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User_medical_tests_doctor_idToUser  User?              @relation("medical_tests_doctor_idToUser", fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User_medical_tests_patient_idToUser User               @relation("medical_tests_patient_idToUser", fields: [patient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  results                             results[]
+}
+
+model parameters {
+  id                  Int                @id @default(autoincrement())
+  medical_category_id Int
+  name                String             @db.VarChar(255)
+  unit                String?            @db.VarChar(50)
+  type                String?            @db.VarChar(50)
+  min_val             Decimal?           @db.Decimal
+  max_val             Decimal?           @db.Decimal
+  medical_categories  medical_categories @relation(fields: [medical_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  results             results[]
+}
+
+model results {
+  id              Int           @id @default(autoincrement())
+  parameter_id    Int
+  medical_test_id Int
+  value           String        @db.VarChar(255)
+  medical_tests   medical_tests @relation(fields: [medical_test_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parameters      parameters    @relation(fields: [parameter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
 enum Role {
   ADMIN
   CLIENT
@@ -17,50 +108,3 @@ enum Analyze_Jornul_Type {
   ACTIV
   RETRO
 }
-
-model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique
-  password      String
-  role          Role          @default(CLIENT)
-  createdAt     DateTime      @default(now())
-  personalData  Personal_Data?
-  files         FileS3[]
-}
-
-model Personal_Data {
-  id          Int    @id @default(autoincrement())
-  cnp         String @db.VarChar(13) @unique
-  firstName   String @db.VarChar(40)
-  lastName    String @db.VarChar(40)
-  address     String @db.VarChar(200)
-  phoneNumber String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-  userId      Int     @unique
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-
-model Informatii_Categorie_Boala{  
-  id          Int    @id @default(autoincrement())  
-  name        String @db.VarChar(50) @unique
-  description String @db.Text
-  content     String @db.Text
-  imageId     Int?   @unique
-  image       FileS3?  @relation(fields: [imageId], references: [id]) // One-to-one relation with FileS3
-}
-
-model FileS3 {
-  id           Int      @id @default(autoincrement())
-  name         String   
-  uploaderId   Int      
-  uploadedAt   DateTime @default(now()) 
-  isDeleted    Boolean  @default(false) 
-  description  String?  
-  mimeType     String
-  uploader     User     @relation(fields: [uploaderId], references: [id])
-  informatii   Informatii_Categorie_Boala? @relation
-
-}
-
