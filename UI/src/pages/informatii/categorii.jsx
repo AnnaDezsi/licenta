@@ -23,6 +23,7 @@ export const Categorii = () => {
 
   const match = useMatches(['/informatii']);
   const onParentPage = match.length <= 2
+  
   const categories = useSelector(getAllCategories)
   useEffect(() => {
     if (!onParentPage) return

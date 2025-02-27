@@ -8,8 +8,8 @@ export const Informatii = () => {
   
   useEffect(() => {
     if(match.length === 1){      
-      const currentPathInRoute = protectedRoutes.find(route => route.path === match[0].pathname)
-      navigate(currentPathInRoute.children[0].path)
+      const currentPathInRoute = protectedRoutes.find(route => route.path === match[0].pathname)      
+      currentPathInRoute && navigate(currentPathInRoute.children[0].path)
     }
   }, [match])
   return <Outlet />
