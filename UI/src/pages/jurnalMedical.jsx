@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { PageContainer } from '../components/PageContainer/PageContainer'
 import { PageHeader } from '../components/PageHeader/PageHeader'
 import { useFormik } from 'formik'
@@ -12,6 +12,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { SecondaryPanel } from '../components/SecondaryPanel/SecondaryPanel'
 import { AddMedicineForm } from '../components/AddMedicineForm/AddMedicineForm'
 import { v4 as uuidv4 } from 'uuid';
+import api from '../services/axiosConfig'
 
 const mockupPastAnalyzes = [
     {
@@ -60,6 +61,9 @@ export const JurnalMedical = () => {
     const [uploadNewAnalyzes, setUploadNewAnalyzes] = useState(false)
     const [uploadMedicalJournal, setMedicalJournal] = useState(false)
 
+    const [medicamentatii, setMedicamentatii] = useState([])
+    const [isLoadingMedicamentatii, setLoadingMedicamentatii] = useState(false);
+
     const analyzesForm = useFormik({
         initialValues: {
             medicalAnalyzes: "",
@@ -84,7 +88,12 @@ export const JurnalMedical = () => {
     })
 
 
+    useEffect(() => {
+        api("/medicamentatie").then(res => setMedicamentatii(res.data.data)).catch(e => console.error(e)).finally(_ => setLoadingMedicamentatii(false))
+    }, [])
 
+
+console.log(medicamentatii);
 
 
     const { getRootProps, getInputProps } = useDropzone({
@@ -113,7 +122,7 @@ export const JurnalMedical = () => {
         }
     }
 
-        return (
+    return (
         <>
             <Box sx={{ width: 1, backgroundColor: theme => `${theme.palette.primary.main}20`, padding: '2em 0' }}>
                 <PageContainer>
@@ -165,7 +174,7 @@ export const JurnalMedical = () => {
                     <SecondaryPanel sx={{ mb: 4 }}>
                         <Grid2 container >
                             <Grid2 size={12}>
-                                <Grid2 container alignItems="center" display="flex" sx={{mb:2}}>
+                                <Grid2 container alignItems="center" display="flex" sx={{ mb: 2 }}>
                                     <Grid2 size="grow">
                                         <Typography>
                                             Incarca analizele - Te rog sa introduci detalii despre ultimele analize
@@ -257,7 +266,7 @@ export const JurnalMedical = () => {
                     <SecondaryPanel sx={{ mb: 4 }}>
                         <Grid2 container>
                             <Grid2 size={12}>
-                                <Grid2 container alignItems="center" display="flex"  sx={{mb:2}}>
+                                <Grid2 container alignItems="center" display="flex" sx={{ mb: 2 }}>
                                     <Grid2 size="grow">
                                         <Typography>
                                             Adauga medicamentatia consumata in perioada unui tratament
@@ -315,6 +324,7 @@ export const JurnalMedical = () => {
                             <List sx={{
                                 height: 320,
                             }}>
+                                
                                 <Box sx={{
                                     width: 1,
                                     height: 1,
@@ -324,7 +334,7 @@ export const JurnalMedical = () => {
                                 }}>
                                     <Typography>Nu exista tratament activ</Typography>
                                 </Box>
-                               
+
                             </List>
                         </Paper>
                     </Grid2>
@@ -343,7 +353,7 @@ export const JurnalMedical = () => {
                                 }}>
                                     <Typography>Nu exista tratamente in trecut</Typography>
                                 </Box>
-                               
+
                             </List>
                         </Paper>
                     </Grid2>

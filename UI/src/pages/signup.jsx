@@ -131,7 +131,7 @@ export const Signup = () => {
                         size="large"
                         variant="outlined"
                         color="secondary"
-                        onClick={() => navigate('/login')}
+                        onClick={() => navigate('/')}
                     >
                         Am deja cont
                     </Button>

@@ -1,25 +1,22 @@
-import * as yup from 'yup';
+import * as Yup from 'yup';
 
 
 
-export const personalDataSetupSchema = yup.object().shape({
-  cnp: yup
-    .string()
-    .length(13, "CNP-ul trebuie să fie constituit din 13 cifre")
-    .required("Vă rugăm să introduceți un CNP valid"),
-  firstName: yup
-    .string()
-    .min(2, "Prenumele este invalid")
-    .required("Vă rugăm să introduceți prenumele"),
-  lastName: yup
-    .string()
-    .min(2, "Numele este invalid")
-    .required("Vă rugăm să introduceți numele"),
-    address: yup
-    .string()
-    .min(5, "Adresa trebuie sa contina mai mult de 5 caractere")
-    .required("Adresa este obligatorie"),
-  phoneNumber: yup
-    .string()
-    .required("Vă rugăm să introduceți numărul de telefon"),
+export const personalDataSetupSchema = Yup.object().shape({
+cnp: Yup.string()
+    .length(13, 'CNP-ul trebuie să fie exact 13 caractere')    
+    .matches(/^\d{13}$/, 'CNP-ul trebuie să conțină doar cifre')
+    .required('CNP-ul este obligatoriu'),
+  firstName: Yup.string()
+    .min(2, 'Prenumele trebuie să aibă cel puțin 2 caractere')
+    .required('Prenumele este obligatoriu'),
+  lastName: Yup.string()
+    .min(2, 'Numele trebuie să aibă cel puțin 2 caractere')
+    .required('Numele este obligatoriu'),
+  address : Yup.string()
+    .min(6, 'Adresa trebuie să aibă cel puțin 6 caractere')
+    .required('Adresa este obligatorie'),
+  phoneNumber: Yup.string()
+    .min(10, 'Numărul de telefon trebuie să aibă cel puțin 10 caractere')
+    .required('Numărul de telefon este obligatoriu')
 });

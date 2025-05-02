@@ -24,7 +24,7 @@ const Control = ({ children, ...props }) => {
     );
 };
 
-export const PrimarySelector = ({options, value, placeholder,preText, onChange, index, isError}) => {
+export const PrimarySelector = ({options, value, placeholder,preText, onChange, index, isError, isLoading}) => {
     return (
         <Select
             options={options}
@@ -33,6 +33,7 @@ export const PrimarySelector = ({options, value, placeholder,preText, onChange, 
             onChange={(newValue, actionMeta) => onChange(newValue, actionMeta, index)}
             text={preText}
             isError={isError}
+            isLoading={isLoading}
             components={{ Control }}
             styles={{                
                 control: (baseStyles, state) => ({

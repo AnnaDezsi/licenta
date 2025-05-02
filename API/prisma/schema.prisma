@@ -26,6 +26,8 @@ model User {
   createdAt     DateTime      @default(now())
   personalData  Personal_Data?
   files         FileS3[]
+  medicamentatie Medicamentatie[] @relation("UserMedicamentatie")
+
 }
 
 model Personal_Data {
@@ -48,7 +50,7 @@ model Informatii_Categorie_Boala{
   description String @db.Text
   content     String @db.Text
   imageId     Int?   @unique
-  image       FileS3?  @relation(fields: [imageId], references: [id]) // One-to-one relation with FileS3
+  image       FileS3?  @relation(fields: [imageId], references: [id]) 
 }
 
 model FileS3 {
@@ -63,4 +65,29 @@ model FileS3 {
   informatii   Informatii_Categorie_Boala? @relation
 
 }
+
+model Medicamente {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.Text @unique
+  description   String         @db.Text
+  medicamentatie Medicamentatie[] @relation("MedicamenteMedicamentatie")
+}
+
+model Medicamentatie {
+  id            Int          @id @default(autoincrement())
+  name          String       @db.VarChar(64)
+  startDate     DateTime     @db.Timestamp()
+  endDate       DateTime     @db.Timestamp()    
+  medicamentId  Int
+  medicament    Medicamente   @relation("MedicamenteMedicamentatie", fields: [medicamentId], references: [id])
+  quantity      Int 
+  userId        Int
+  user          User         @relation("UserMedicamentatie", fields: [userId], references: [id], onDelete: Cascade) 
+  createdAt     DateTime     @default(now()) 
+  updatedAt     DateTime     @updatedAt      
+
+  @@unique([name, userId]) 
+
+}
+
 
