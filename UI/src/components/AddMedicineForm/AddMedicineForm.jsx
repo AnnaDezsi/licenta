@@ -2,29 +2,25 @@ import { Box, Button, Grid2, TextField, Typography } from "@mui/material"
 import { convertManyToLabelAndValue } from "../../utilities/convertors"
 import { createIncrementalArray } from "../../utilities/generators"
 import { FieldArray, FormikProvider, useFormik } from "formik"
-import Select, { components } from 'react-select'
 import DeleteIcon from '@mui/icons-material/Delete';
 import * as Yup from 'yup';
 import AddIcon from '@mui/icons-material/Add';
 import { PrimarySelector } from "../PrimarySelector/PrimarySelector"
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import dayjs from "dayjs"
+import { useEffect, useState } from "react"
+import api from "../../services/axiosConfig"
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
-const optionsMedicamente = [
-    {
-        nume: "Algocalmin"
-    },
-    {
-        nume: "Paracetamol"
-    },
-]
-
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const AddMedicineForm = () => {
-
+    const [optionsMedicamente, setOptionsMedicamente] = useState([])
+    const [isLoadingMedicamente, setLoadingMedicamente] = useState(false);
     const medicalJournalForm = useFormik({
         initialValues: {
             journalName: "",
@@ -47,13 +43,18 @@ export const AddMedicineForm = () => {
             ),
         }),
         onSubmit: async (values) => {
-            console.log("Submitted values:", values);
+            api.post("/medicamentatie", values).then(res => [res.data.data, ...medicamentatii])
         },
     });
 
 
+    useEffect(() => {
+        setLoadingMedicamente(true)
+        api('/medicamente').then(res => setOptionsMedicamente(res.data.data)).catch(e => console.error(e)).finally(_ => setLoadingMedicamente(false))
 
-    const medicineOptions = convertManyToLabelAndValue(optionsMedicamente, 'nume')
+    }, [])
+
+    const medicineOptions = convertManyToLabelAndValue(optionsMedicamente, 'name')
     const comprimateOptions = convertManyToLabelAndValue(createIncrementalArray(1, 5), 'value')
 
     const changeMedicineValue = (newValue, actionMeta, index) => {
@@ -66,9 +67,6 @@ export const AddMedicineForm = () => {
         medicalJournalForm.setFieldValue(`medicines[${index}].quantity`, newValue.value)
     }
 
-    const changeMedicineDate = (value, field) => {
-        medicalJournalForm.setValues(field, value)
-    }
 
 
     return (
@@ -88,6 +86,7 @@ export const AddMedicineForm = () => {
                     <Grid2 size={6}>
                         <DatePicker
                             label="Data incepere tratament"
+                            timezone="Europe/Bucharest"
                             onChange={(value) => medicalJournalForm.setFieldValue("startDate", value, true)}
                             value={medicalJournalForm.values.startDate}
                             sx={{ width: 1 }}
@@ -96,6 +95,7 @@ export const AddMedicineForm = () => {
                     <Grid2 size={6}>
                         <DatePicker
                             label="Data sfarsit tratament"
+                            timezone="Europe/Bucharest"
                             onChange={(value) => medicalJournalForm.setFieldValue("endDate", value, true)}
                             value={medicalJournalForm.values.endDate}
                             sx={{ width: 1 }}
@@ -123,6 +123,7 @@ export const AddMedicineForm = () => {
                                             options={medicineOptions}
                                             value={medicineOptions.find(option => option.value === medicine.medicine)}
                                             placeholder="Selectează medicament"
+                                            isLoading={isLoadingMedicamente}
                                             onChange={(newValue, actionMeta) => changeMedicineValue(newValue, actionMeta, index)}
                                             index={index}
                                             preText="Medicament"

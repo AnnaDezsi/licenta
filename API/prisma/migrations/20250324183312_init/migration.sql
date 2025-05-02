@@ -54,6 +54,30 @@ CREATE TABLE "FileS3" (
     CONSTRAINT "FileS3_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Medicament" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+
+    CONSTRAINT "Medicament_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Medicamentatie" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(64) NOT NULL,
+    "startDate" TIMESTAMP NOT NULL,
+    "endDate" TIMESTAMP NOT NULL,
+    "medicamentId" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Medicamentatie_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -69,6 +93,9 @@ CREATE UNIQUE INDEX "Informatii_Categorie_Boala_name_key" ON "Informatii_Categor
 -- CreateIndex
 CREATE UNIQUE INDEX "Informatii_Categorie_Boala_imageId_key" ON "Informatii_Categorie_Boala"("imageId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Medicament_name_key" ON "Medicament"("name");
+
 -- AddForeignKey
 ALTER TABLE "Personal_Data" ADD CONSTRAINT "Personal_Data_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -77,3 +104,9 @@ ALTER TABLE "Informatii_Categorie_Boala" ADD CONSTRAINT "Informatii_Categorie_Bo
 
 -- AddForeignKey
 ALTER TABLE "FileS3" ADD CONSTRAINT "FileS3_uploaderId_fkey" FOREIGN KEY ("uploaderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Medicamentatie" ADD CONSTRAINT "Medicamentatie_medicamentId_fkey" FOREIGN KEY ("medicamentId") REFERENCES "Medicament"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Medicamentatie" ADD CONSTRAINT "Medicamentatie_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

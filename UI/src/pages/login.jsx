@@ -1,7 +1,7 @@
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { TextField, Button, Container, Typography, Paper, InputAdornment } from '@mui/material';
+import { TextField, Button, Container, Typography, Paper, InputAdornment, Box } from '@mui/material';
 import api from '../services/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux'
@@ -9,6 +9,7 @@ import { setAuthProfile } from '../store/auth/action';
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
 import AlternateEmailOutlinedIcon from '@mui/icons-material/AlternateEmailOutlined';
 import { DividerWithText } from '../components/DividerWithText/DividerWithText';
+import { useState } from 'react';
 
 const validationSchema = yup.object({
     email: yup.string().email('Te rugam sa introduci o adresa de email valida').required('Adresa de email este obligatorie'),
@@ -16,6 +17,9 @@ const validationSchema = yup.object({
 });
 
 export const Login = () => {
+    const [errorMessage, setErrorMessage] = useState("");
+    const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
@@ -26,6 +30,8 @@ export const Login = () => {
         },
         validationSchema,
         onSubmit: async (values) => {
+            setLoading(true)
+            setErrorMessage("")
             try {
                 const response = await api.post('/auth/login', values);
                 localStorage.setItem('token', response.data.token);                
@@ -37,10 +43,15 @@ export const Login = () => {
                         email: "Adresa de email este incorecta",
                         password: "Parola introdusa este incorecta",
                     });
+                }else{                    
+                    setErrorMessage("Ceva nu a functionat bine. Incearca mai tarziu!")
                 }
+            } finally{
+                setLoading(false)
             }
         },
     });
+    
     
 
     return (
@@ -58,6 +69,7 @@ export const Login = () => {
                 <Typography variant="h4" align='center' component="h1" gutterBottom>
                     Login
                 </Typography>
+                {errorMessage && <Box sx={{border: '1px solid', borderColor: theme => theme.palette.error.main, paddingX: 4, paddingY: 2, mb: 2}}><Typography color="error">{errorMessage}</Typography></Box>}
                 <form onSubmit={formik.handleSubmit} style={{ width: '100%' }}>
                     <TextField
                         label="Adresa de email"
@@ -101,6 +113,7 @@ export const Login = () => {
                     <Button
                         type="submit"
                         fullWidth
+                        disabled={loading}
                         size="large"
                         variant="contained"
                         color="primary"

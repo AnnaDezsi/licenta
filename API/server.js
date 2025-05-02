@@ -9,6 +9,8 @@ import userRouter from './routes/userRouter.js';
 import personalDataRouter from './routes/personalDataRouter.js';
 import infoRouter from './routes/infoRouter.js';
 import fileRouter from './routes/fileRouter.js';
+import medicamenteRouter from './routes/medicamenteRouter.js';
+import medicamentatieRouter from './routes/medicamentatieRouter.js';
 import prisma from './config/databaseInstance.js';
 
 dotenv.config();
@@ -24,6 +26,8 @@ app.use('/api/auth', userRouter);
 app.use('/api/personal', personalDataRouter);
 app.use('/api/info', infoRouter);
 app.use('/api/file', fileRouter);
+app.use("/api/medicamente", medicamenteRouter);
+app.use("/api/medicamentatie", medicamentatieRouter);
 
 
 app.use((req, res) => {

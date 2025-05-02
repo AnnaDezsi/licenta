@@ -42,6 +42,17 @@ export const personalDataSetup = async (req, res) => {
   const { userId } = req.user;
 
   try {
+
+    const existingPersonalData = await prisma.personal_Data.findUnique({
+      where: { cnp }
+    });
+
+    if (existingPersonalData) {
+      return res.status(400).json({
+        message: 'CNP-ul introdus exista deja in baza de date.',
+      });
+    }
+
     const personalData = await prisma.personal_Data.create({
       data: {
         cnp,
