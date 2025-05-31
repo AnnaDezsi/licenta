@@ -1,116 +1,112 @@
 import prisma from "../config/databaseInstance.js";
 
 export const createMedicamentatie = async (req, res) => {
-    const { journalName, startDate, endDate, medicines } = req.body;
-    const { userId } = req.user;
-  
-    try {
-      const alreadyRegistered = await prisma.medicamentatie.findFirst({
-        where: {
-          name: journalName,
-          userId: userId, 
-        },
-      });
-  
-      if (alreadyRegistered) {
-        return res.status(401).json({
-          error: 'Deja exista un jurnal cu numele acesta',
-        });
-      }
-  
-      const medicamentatieEntries = await Promise.all(
-        medicines.map(async (medicine) => {
-          const medicament = await prisma.medicamente.findUnique({
-            where: { name: medicine.medicine },
-          });
-  
-          if (!medicament) {
-            throw new Error(`Medicamentul cu numele ${medicine.medicine} nu a fost gasit.`);
-          }
-  
-          return await prisma.medicamentatie.create({
-            data: {
-              name: !journalName ? new Date(startDate).toDateString() : journalName,
-              startDate,
-              endDate,
-              medicamentId: medicament.id,
-              quantity: medicine.quantity,
-              userId,
-            },
-            include: {
-              medicament: true,
-            },
-          });
-        })
-      );
-  
-      const result = {
-        journalName: medicamentatieEntries[0].name,
-        startDate: medicamentatieEntries[0].startDate,
-        endDate: medicamentatieEntries[0].endDate,
-        medicines: medicamentatieEntries.map(med => ({
-          medicine: med.medicament.name,
-          quantity: med.quantity,
-        })),
-      };
-  
-      res.status(201).json({
-        message: 'Medicamentatie adaugata cu succes!',
-        data: result,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        error: 'Ooops! Ceva nu a functionat bine. Te rog incearca mai tarziu',
+  const { name, startDate, endDate, medicines } = req.body;
+  const { userId } = req.user;
+
+  try {
+    const alreadyRegistered = await prisma.medicamentatie.findFirst({
+      where: {
+        name,
+        userId: userId,
+      },
+    });
+
+    if (!!alreadyRegistered) {
+      return res.status(409).json({
+        error: 'Deja exista un jurnal de medicamentatie cu acest nume',
       });
     }
-  };
-  
 
+    const medicamentatieEntries = await Promise.all(
+      medicines.map(async (medicine) => {
+        const medicament = await prisma.medicamente.findUnique({
+          where: { name: medicine.name },
+        });
 
-  export const getMedicamentatie = async (req, res) => {
-    const { userId } = req.user;
-  
-    try {
-      const medicamentatieEntries = await prisma.medicamentatie.findMany({
-        where: {
-          userId,
-        },
-        include: {
-          medicament: true,
-        },
-      });
-  
-      const groupedByName = medicamentatieEntries.reduce((acc, entry) => {
-        if (!acc[entry.name]) {
-          acc[entry.name] = {
-            journalName: entry.name,
-            startDate: entry.startDate,
-            endDate: entry.endDate,
-            medicines: [],
-          };
+        if (!medicament) {
+          throw new Error(`Medicamentul cu numele ${medicine.medicine} nu a fost gasit.`);
         }
-  
-        acc[entry.name].medicines.push({
-          medicine: entry.medicament.name,
-          quantity: entry.quantity,
+
+        return await prisma.medicamentatie.create({
+          data: {
+            name: !name ? new Date(startDate).toDateString() : name,
+            startDate,
+            endDate,
+            medicamentId: medicament.id,
+            quantity: medicine.quantity,
+            userId,
+          },
+          include: {
+            medicament: true,
+          },
         });
-  
-        return acc;
-      }, {});
-  
-      const result = Object.values(groupedByName);
-  
-      // Return the formatted result
-      res.status(200).json({
-        message: 'Medicamentatie records retrieved successfully!',
-        data: result,
+      })
+    );
+
+    const result = {
+      name: medicamentatieEntries[0].name,
+      startDate: medicamentatieEntries[0].startDate,
+      endDate: medicamentatieEntries[0].endDate,
+      medicines: medicamentatieEntries.map(med => ({
+        name: med.medicament.name,
+        quantity: med.quantity,
+      })),
+    };
+
+    res.status(201).json({
+      message: 'Medicamentatie adaugata cu succes!',
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ooops! Ceva nu a functionat bine. Te rog incearca mai tarziu',
+    });
+  }
+};
+
+
+
+export const getMedicamentatie = async (req, res) => {
+  const { userId } = req.user;
+
+  try {
+    const medicamentatieEntries = await prisma.medicamentatie.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        medicament: true,
+      },
+    });
+
+    const groupedByName = medicamentatieEntries.reduce((acc, entry) => {
+      if (!acc[entry.name]) {
+        acc[entry.name] = {
+          name: entry.name,
+          startDate: entry.startDate,
+          endDate: entry.endDate,
+          medicines: [],
+        };
+      }
+
+      acc[entry.name].medicines.push({
+        name: entry.medicament.name,
+        quantity: entry.quantity,
       });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        error: 'Ooops! Ceva nu a functionat bine. Te rog incearca mai tarziu',
-      });
-    }
-  };
-  
+
+      return acc;
+    }, {});
+
+    const result = Object.values(groupedByName);
+
+    res.status(200).json({
+      message: 'Medicamentatie records retrieved successfully!',
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ooops! Ceva nu a functionat bine. Te rog incearca mai tarziu',
+    });
+  }
+};

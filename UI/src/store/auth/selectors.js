@@ -8,6 +8,6 @@ export const authProfileSelector = createSelector(
 
 export const personalDataSelector = createSelector(
     [authProfileSelector], 
-    state => state.personal
+    state => state?.personal
 )
 

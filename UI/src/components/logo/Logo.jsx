@@ -10,7 +10,7 @@ export const Logo = () => {
         columnGap: '1em'
     }}>
         <img src={logo} height={50} alt="Inteligent Medical Solution Color Logo"/>
-        <Typography color="textPrimary" variant="h6">Inteligent Medical Solution</Typography>
+        <Typography color="secondary" variant="body1">Inteligent Medical Solution</Typography>
     </Box>
   )
 }

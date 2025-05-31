@@ -14,36 +14,57 @@ import api from "../../services/axiosConfig"
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { useDispatch } from "react-redux";
+import { addMed } from "../../store/journal/action";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export const AddMedicineForm = () => {
+
     const [optionsMedicamente, setOptionsMedicamente] = useState([])
     const [isLoadingMedicamente, setLoadingMedicamente] = useState(false);
+
+    const dispatch = useDispatch();
+
     const medicalJournalForm = useFormik({
         initialValues: {
-            journalName: "",
+            name: "",
             startDate: null,
             endDate: null,
             medicines: [
                 {
-                    medicine: "",
+                    name: "",
                     quantity: "",
                 },
             ],
         },
         validationSchema: Yup.object({
-            journalName: Yup.string(),
+            name: Yup.string().required("Numele jurnalului de medicamentatie este obligatoriu "),
+            startDate: Yup.date()
+                .required("Data de început este obligatorie"),
+            endDate: Yup.date()
+                .required("Data de sfârșit este obligatorie")
+                .min(
+                    Yup.ref('startDate'),
+                    "Data de sfârșit nu poate fi anterioară datei de început"
+                ),
             medicines: Yup.array().of(
                 Yup.object({
-                    medicine: Yup.string().required("Selectează un medicament"),
+                    name: Yup.string().required("Selectează un medicament"),
                     quantity: Yup.string().required("Selectează o cantitate"),
                 })
             ),
         }),
+
         onSubmit: async (values) => {
-            api.post("/medicamentatie", values).then(res => [res.data.data, ...medicamentatii])
+            api.post("/medicamentatie", values)
+            .then(res => dispatch(addMed(res.data.data)))
+            .catch(err => {
+                if(err?.status === 409){
+                    medicalJournalForm.setErrors({"name": err?.response?.data?.error})
+                }
+            })
         },
     });
 
@@ -59,7 +80,7 @@ export const AddMedicineForm = () => {
 
     const changeMedicineValue = (newValue, actionMeta, index) => {
         if (actionMeta.action !== 'select-option') return
-        medicalJournalForm.setFieldValue(`medicines[${index}].medicine`, newValue.value)
+        medicalJournalForm.setFieldValue(`medicines[${index}].name`, newValue.value)
     }
 
     const changeMedicineQuantityValue = (newValue, actionMeta, index) => {
@@ -72,13 +93,17 @@ export const AddMedicineForm = () => {
     return (
         <form onSubmit={medicalJournalForm.handleSubmit}>
             <TextField
-                label="(Optional) Nume Jurnal"
+                label="Nume Medicamentatie"
                 variant="standard"
                 placeholder="Salvează un nume pentru această intrare în jurnal (Ex.: Dureri de spate)"
                 fullWidth
                 margin="normal"
-                {...medicalJournalForm.getFieldProps("journalName")}
+                {...medicalJournalForm.getFieldProps("name")}
                 sx={{ mb: 4 }}
+                error={!!medicalJournalForm.touched.name &&
+                    !!medicalJournalForm.errors.name}
+                helperText={!!medicalJournalForm.errors.name && medicalJournalForm.errors.name}
+
             />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Grid2 container spacing={2}
@@ -89,6 +114,12 @@ export const AddMedicineForm = () => {
                             timezone="Europe/Bucharest"
                             onChange={(value) => medicalJournalForm.setFieldValue("startDate", value, true)}
                             value={medicalJournalForm.values.startDate}
+                            slotProps={{
+                                textField: {
+                                    error: Boolean(medicalJournalForm.touched.startDate && medicalJournalForm.errors.startDate),
+                                    helperText: medicalJournalForm.touched.startDate && medicalJournalForm.errors.startDate,
+                                },
+                            }}
                             sx={{ width: 1 }}
                         />
                     </Grid2>
@@ -98,6 +129,14 @@ export const AddMedicineForm = () => {
                             timezone="Europe/Bucharest"
                             onChange={(value) => medicalJournalForm.setFieldValue("endDate", value, true)}
                             value={medicalJournalForm.values.endDate}
+                            minDate={medicalJournalForm.values.startDate}
+                            
+                            slotProps={{
+                                textField: {
+                                    error: Boolean(medicalJournalForm.touched.endDate && medicalJournalForm.errors.endDate),
+                                    helperText: medicalJournalForm.touched.endDate && medicalJournalForm.errors.endDate,
+                                },
+                            }}
                             sx={{ width: 1 }}
                         />
                     </Grid2>
@@ -121,20 +160,20 @@ export const AddMedicineForm = () => {
                                     <Grid2 size={6}>
                                         <PrimarySelector
                                             options={medicineOptions}
-                                            value={medicineOptions.find(option => option.value === medicine.medicine)}
+                                            value={medicineOptions.find(option => option.value === medicine.name)}
                                             placeholder="Selectează medicament"
                                             isLoading={isLoadingMedicamente}
                                             onChange={(newValue, actionMeta) => changeMedicineValue(newValue, actionMeta, index)}
                                             index={index}
                                             preText="Medicament"
-                                            isError={medicalJournalForm.touched.medicines?.[index]?.medicine &&
-                                                medicalJournalForm.errors.medicines?.[index]?.medicine}
+                                            isError={medicalJournalForm.touched.medicines?.[index]?.name &&
+                                                medicalJournalForm.errors.medicines?.[index]?.name}
                                         />
 
-                                        {medicalJournalForm.touched.medicines?.[index]?.medicine &&
-                                            medicalJournalForm.errors.medicines?.[index]?.medicine && (
+                                        {medicalJournalForm.touched.medicines?.[index]?.name &&
+                                            medicalJournalForm.errors.medicines?.[index]?.name && (
                                                 <div style={{ color: "red", fontSize: "0.8rem" }}>
-                                                    {medicalJournalForm.errors.medicines[index].medicine}
+                                                    {medicalJournalForm.errors.medicines[index].name}
                                                 </div>
                                             )}
                                     </Grid2>
@@ -188,12 +227,11 @@ export const AddMedicineForm = () => {
                                     </Button>
                                 </Grid2>
                                 <Grid2 size="auto">
-                                    <Button size="large" type="submit" variant="contained" color="primary">
+                                    <Button size="large" disabled={!!Object.keys(medicalJournalForm.errors).length} type="submit" variant="contained" color="primary">
                                         Salvează
                                     </Button>
                                 </Grid2>
                             </Grid2>
-
                         </Box>
                     )}
                 />

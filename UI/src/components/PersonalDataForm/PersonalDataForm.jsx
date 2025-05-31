@@ -9,6 +9,10 @@ import { PageContainer } from "../PageContainer/PageContainer";
 import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
 import { PageHeader } from "../PageHeader/PageHeader";
 import * as Yup from 'yup';
+import { useDispatch, useSelector } from "react-redux";
+import { personalDataSelector } from "../../store/auth/selectors";
+import api from "../../services/axiosConfig";
+import { setAuthPersonalData } from "../../store/auth/action";
 
 const validationSchema = Yup.object({
   cnp: Yup.string()
@@ -52,8 +56,22 @@ const modifiedFields = (initialData = {}, modifiedData = {}, whichFields = []) =
 
 
 
-export const PersonalDataForm = ({ datePersonale, handleSubmit }) => {
+export const PersonalDataForm = () => {
+  const datePersonale = useSelector(personalDataSelector);
   const [isConfirming, setConfirming] = useState(false)
+
+  const dispatch = useDispatch();
+
+  const handleSubmit = async (values) => {
+    try {
+      await api.put('/personal', values);
+      dispatch(setAuthPersonalData(values));
+      return "success";
+    } catch (e) {
+      throw new Error(e.message);
+    }
+  };
+
 
   const formik = useFormik({
     enableReinitialize: true,

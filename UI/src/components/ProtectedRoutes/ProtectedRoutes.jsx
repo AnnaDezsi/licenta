@@ -30,7 +30,7 @@ export const ProtectedRoutes = ({ children }) => {
             return response.data.data
         })
             .then(data => {   
-                // debugger
+                
                 dispatch(setAuthProfileRole(data.role))             
                 if((!personalDataAlreadySetup && data.personalData)){
                     dispatch(setAuthPersonalData(data.personalData))

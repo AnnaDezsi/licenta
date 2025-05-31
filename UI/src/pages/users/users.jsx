@@ -7,7 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Outlet, useMatches, useNavigate } from 'react-router-dom';
 import { ConfirmationModal } from '../../components/ConfirmationModal/ConfirmationModal';
-import { formatDateTime } from '../../utilities/DateUtils';
+import { DateUtils } from '../../utilities/DateUtils';
 
 export const Users = () => {
     const [users, setUsers] = useState([]);
@@ -87,7 +87,7 @@ export const Users = () => {
                                                 </TableCell>
                                                 <TableCell>{client.role}</TableCell>
                                                 <TableCell align="right">{client.personalData.phoneNumber}</TableCell>
-                                                <TableCell align="right">{formatDateTime(client.createdAt)}</TableCell>
+                                                <TableCell align="right">{DateUtils.formatDateTime(client.createdAt)}</TableCell>
                                                 <TableCell align="right">
                                                     <IconButton
                                                         size="small"

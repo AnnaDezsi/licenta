@@ -19,8 +19,6 @@ const authReducer = (state = initialState, action) => {
       }
     }
     case SET_AUTH_ROLE: {
-      console.log(action.payload);
-      
       return {
         ...state,
         role: action.payload
