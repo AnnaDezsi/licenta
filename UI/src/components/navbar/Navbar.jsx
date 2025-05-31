@@ -4,9 +4,12 @@ import { Menu } from "./menu/Menu";
 import { Account } from "./account/Account";
 import theme from "../../services/theme";
 import { PageContainer } from "../PageContainer/PageContainer";
-import { SearchBar } from "../searchBar/searchBar";
+import { useState } from "react";
 
 export const Navbar = () => {
+
+  const [isMobile, setMobile] = useState();
+
   return (
     <Paper
       sx={{
@@ -20,30 +23,24 @@ export const Navbar = () => {
           sx={{
             display: "flex",
             alignItems: "center",
+            flexDirection: "row",
+            justifyContent: "space-between",
             padding: "1em 0",
           }}
         >
-          <Grid2 size="auto">
+          <Grid2>
             <Logo />
           </Grid2>
-          <Grid2 size="grow" sx={{ padding: "0 4em" }}>
-            <Box sx={{
-                width: 1
-            }}>
-              <SearchBar />
-            </Box>
-          </Grid2>
           <Grid2
-            size="auto"
             sx={{
               display: "flex",
-              flexDirection: "row-reverse",
-              paddingRight: "2em",
+              justifyContent: "flex-end",
+              columnGap: '.2em',
+              flexDirection: "row",
+              alignItems: "center"
             }}
           >
-            <Menu />
-          </Grid2>
-          <Grid2 size="auto">
+            <Menu />            
             <Account />
           </Grid2>
           {/* dropdown */}

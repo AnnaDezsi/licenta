@@ -85,14 +85,12 @@ export const Menu = () => {
     const findRoutesAvailable = filterRoutesByRole(protectedRoutes, currentRole)
     
     return (
-        <Box sx={{
-            display: 'flex'
-        }}>
+        <>
             {findRoutesAvailable.map(route =>
                 !!route?.compactNavigation ?
                     <NavigationItemWithMenu key={route.name} route={route} /> :
                     <NavigationItem key={route.name} route={route} />
             )}
-        </Box>
+        </>
     )
 }
