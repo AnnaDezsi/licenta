@@ -13,6 +13,7 @@ const authReducer = (state = initialState, action) => {
     case REMOVE_AUTH_PROFILE:
       return initialState;
     case SET_PERSONAL_DATA: {
+      
       return {
         ...state,
         personal: action.payload

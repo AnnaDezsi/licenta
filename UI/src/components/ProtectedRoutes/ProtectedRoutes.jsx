@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { setAuthPersonalData, setAuthProfileRole } from "../../store/auth/action";
 import { personalDataSelector } from "../../store/auth/selectors";
 import { PersonalDataModal } from "../PersonalDataModal/PersonalDataModal";
+import { GenericUtils } from "../../utilities/GenericUtils";
+
 
 export const ProtectedRoutes = ({ children }) => {
     const [perm, setPerm] = useState(true);
@@ -26,15 +28,15 @@ export const ProtectedRoutes = ({ children }) => {
             if (!ignore && (response.status !== 200 || !token)) {
                 setPerm(false)
             }
-
             return response.data.data
         })
-            .then(data => {   
-                
-                dispatch(setAuthProfileRole(data.role))             
-                if((!personalDataAlreadySetup && data.personalData)){
+            .then(data => {
+                console.log(data)
+                dispatch(setAuthProfileRole(data.role))
+                if ((!personalDataAlreadySetup && GenericUtils.otherKeysExcept(data.personalData, "userId"))) {
                     dispatch(setAuthPersonalData(data.personalData))
-                }else if(!data.personalData){
+                } else if (!GenericUtils.otherKeysExcept(data.personalData, "userId")) {
+                    dispatch(setAuthPersonalData(data.personalData))
                     setPersonalDataModalOpen(true)
                 }
             })
@@ -47,7 +49,7 @@ export const ProtectedRoutes = ({ children }) => {
 
 
     return perm ? <>
-        <PersonalDataModal isOpen={isPersonalDataModalOpen} setModalOpen={setPersonalDataModalOpen}/>
+        <PersonalDataModal isOpen={isPersonalDataModalOpen} setModalOpen={setPersonalDataModalOpen} />
         {children}
     </> : <Navigate to="/" replace />;
 }
