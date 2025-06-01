@@ -69,7 +69,9 @@ export const verifySession = async (req, res) => {
       return res.status(200).json({
         message: "Trebuie sa completati datele personale pentru a continua accesarea aplicatiei",
         data: {
-          personalData: null,
+          personalData: {
+            userId
+          },
           role: userRole
         }
       })

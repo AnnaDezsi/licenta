@@ -31,17 +31,29 @@ model User {
 }
 
 model Personal_Data {
-  id          Int    @id @default(autoincrement())
-  cnp         String @db.VarChar(13) @unique
-  firstName   String @db.VarChar(40)
-  lastName    String @db.VarChar(40)
-  address     String @db.VarChar(200)
+  id          Int                      @id @default(autoincrement())
+  cnp         String                   @unique @db.VarChar(13)
+  firstName   String                   @db.VarChar(40)
+  lastName    String                   @db.VarChar(40)
+  address     String                   @db.VarChar(200)
   phoneNumber String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-  userId      Int     @unique
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @default(now())
+  userId      Int                      @unique
+  user        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  details     Personal_Data_Details?   @relation("PersonalDataToDetails")
 }
+
+model Personal_Data_Details {
+  id             Int          @id @default(autoincrement())
+  fumator        Boolean
+  sarcinaActiva  Boolean
+  diabet         Boolean
+  personalDataId Int          @unique
+  personalData   Personal_Data @relation(fields: [personalDataId], references: [id], onDelete: Cascade, name: "PersonalDataToDetails")
+}
+
 
 
 model Informatii_Categorie_Boala{  

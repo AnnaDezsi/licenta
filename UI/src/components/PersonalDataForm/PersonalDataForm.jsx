@@ -1,18 +1,12 @@
 import { useFormik } from "formik"
-import { Button, InputAdornment, List, ListItem, ListItemText, TextField, Typography } from "@mui/material"
+import { Box, Button, Checkbox, FormControlLabel, Grid2, InputAdornment, List, ListItem, ListItemText, TextField, Typography } from "@mui/material"
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import HomeIcon from '@mui/icons-material/Home';
 import { useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid';
-import { PageContainer } from "../PageContainer/PageContainer";
 import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
-import { PageHeader } from "../PageHeader/PageHeader";
 import * as Yup from 'yup';
-import { useDispatch, useSelector } from "react-redux";
-import { personalDataSelector } from "../../store/auth/selectors";
-import api from "../../services/axiosConfig";
-import { setAuthPersonalData } from "../../store/auth/action";
 
 const validationSchema = Yup.object({
   cnp: Yup.string()
@@ -38,16 +32,30 @@ const mappedFormValueToRomanian = {
   firstName: 'Prenume',
   lastName: 'Nume de familie',
   address: 'Adresa',
-  phoneNumber: 'Numar de telefon'
-}
+  phoneNumber: 'Număr de telefon',
+  'details.fumator': 'Fumător',
+  'details.sarcinaActiva': 'Sarcină activă',
+  'details.diabet': 'Diabet'
+};
+
 
 const modifiedFields = (initialData = {}, modifiedData = {}, whichFields = []) => {
-
   const result = {};
-  if (!initialData && !modifiedData) return result
-  Object.keys(initialData).forEach((key) => {
-    if (whichFields.includes(key) && initialData[key] !== modifiedData[key]) {
-      result[key] = `${initialData[key]} -> ${modifiedData[key]}`;
+
+  if (!initialData || !modifiedData) return result;
+
+  whichFields.forEach((field) => {
+    if (field.includes(".")) {
+      const [parentKey, childKey] = field.split(".");
+      const initial = initialData?.[parentKey]?.[childKey];
+      const modified = modifiedData?.[parentKey]?.[childKey];
+      if (initial !== modified) {
+        result[field] = `${initial} -> ${modified}`;
+      }
+    } else {
+      if (initialData[field] !== modifiedData[field]) {
+        result[field] = `${initialData[field]} -> ${modifiedData[field]}`;
+      }
     }
   });
 
@@ -56,44 +64,31 @@ const modifiedFields = (initialData = {}, modifiedData = {}, whichFields = []) =
 
 
 
-export const PersonalDataForm = () => {
-  const datePersonale = useSelector(personalDataSelector);
+const initialValues = (datePersonale) => ({
+  cnp: datePersonale?.cnp || "",
+  firstName: datePersonale?.firstName || "",
+  lastName: datePersonale?.lastName || "",
+  address: datePersonale?.address || "",
+  phoneNumber: datePersonale?.phoneNumber || "",
+  details: {
+    fumator: datePersonale?.details.fumator || false,
+    sarcinaActiva: datePersonale?.details.sarcinaActiva || false,
+    diabet: datePersonale?.details.diabet || false
+  }
+})
+
+export const PersonalDataForm = ({ datePersonale, handleSubmit }) => {
   const [isConfirming, setConfirming] = useState(false)
-
-  const dispatch = useDispatch();
-
-  const handleSubmit = async (values) => {
-    try {
-      await api.put('/personal', values);
-      dispatch(setAuthPersonalData(values));
-      return "success";
-    } catch (e) {
-      throw new Error(e.message);
-    }
-  };
-
 
   const formik = useFormik({
     enableReinitialize: true,
-    initialValues: {
-      cnp: datePersonale?.cnp || "",
-      firstName: datePersonale?.firstName || "",
-      lastName: datePersonale?.lastName || "",
-      address: datePersonale?.address || "",
-      phoneNumber: datePersonale?.phoneNumber || "",
-    },
+    initialValues: initialValues(datePersonale),
     validationSchema,
     onSubmit: async (values) => {
       try {
         await handleSubmit(values)
       } catch (error) {
-        formik.setValues({
-          cnp: datePersonale?.cnp || "",
-          firstName: datePersonale?.firstName || "",
-          lastName: datePersonale?.lastName || "",
-          address: datePersonale?.address || "",
-          phoneNumber: datePersonale?.phoneNumber || "",
-        })
+        formik.setValues(initialValues(datePersonale))
         console.error(error?.message)
       }
       finally { setConfirming(false) }
@@ -102,17 +97,22 @@ export const PersonalDataForm = () => {
 
   const memoizedChangedFields = useMemo(() => {
     if (!datePersonale) return {};
-    return modifiedFields(datePersonale, formik.values, ["cnp", "firstName", "lastName", "address", "phoneNumber"])
+    return modifiedFields(datePersonale, formik.values, [
+      "cnp",
+      "firstName",
+      "lastName",
+      "address",
+      "phoneNumber",
+      "details.fumator",
+      "details.sarcinaActiva",
+      "details.diabet"
+    ]);
   }, [formik.values, datePersonale]);
 
+
+
   const handleClose = () => {
-    formik.setValues({
-      cnp: datePersonale?.cnp || "",
-      firstName: datePersonale?.firstName || "",
-      lastName: datePersonale?.lastName || "",
-      address: datePersonale?.address || "",
-      phoneNumber: datePersonale?.phoneNumber || "",
-    })
+    formik.setValues(initialValues(datePersonale))
     setConfirming(false)
   }
 
@@ -122,96 +122,157 @@ export const PersonalDataForm = () => {
 
       <ConfirmationModal title="Doriti sa modificati urmatoarele date cu caracter personal?" isOpen={isConfirming} handleClose={handleClose} handleConfirm={formik.submitForm} >
         <List>
-          {memoizedChangedFields && Object.keys(memoizedChangedFields).map(changedItemKey => {
-            return (<ListItem key={uuidv4()}>
-              <ListItemText
-                primary={`${mappedFormValueToRomanian[changedItemKey]}: ${memoizedChangedFields[changedItemKey]}`}
-              />
-            </ListItem>)
+          {Object.entries(memoizedChangedFields).map(([field, change]) => {
+            const [oldValue, newValue] = change.split(" -> ");
+            const displayOld = oldValue === "true" ? "Da" : oldValue === "false" ? "Nu" : oldValue;
+            const displayNew = newValue === "true" ? "Da" : newValue === "false" ? "Nu" : newValue;
+
+            return (
+              <ListItem key={uuidv4()}>
+                <ListItemText
+                  primary={`${mappedFormValueToRomanian[field] || field}: ${displayOld} → ${displayNew}`}
+                />
+              </ListItem>
+            );
           })}
         </List>
+
       </ConfirmationModal>
 
 
 
       <form>
-        <TextField
-          label="Nume de familie"
-          variant="outlined"
-          placeholder='Nume de familie'
-          fullWidth
-          margin="normal"
-          {...formik.getFieldProps('lastName')}
-          error={formik.touched.lastName && Boolean(formik.errors.lastName)}
-          helperText={formik.touched.lastName && formik.errors.lastName}
-        /> <TextField
-          label="Prenume"
-          variant="outlined"
-          placeholder='Prenume'
-          fullWidth
-          margin="normal"
-          {...formik.getFieldProps('firstName')}
-          error={formik.touched.firstName && Boolean(formik.errors.firstName)}
-          helperText={formik.touched.firstName && formik.errors.firstName}
-        /> <TextField
-          label="CNP"
-          variant="outlined"
-          placeholder='Cod Numeric Personal'
-          fullWidth
-          margin="normal"
-          {...formik.getFieldProps('cnp')}
-          error={formik.touched.cnp && Boolean(formik.errors.cnp)}
-          helperText={formik.touched.cnp && formik.errors.cnp}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FingerprintIcon />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-        <TextField
-          label="Numar de telefon"
-          placeholder='0770100100'
-          type="text"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          {...formik.getFieldProps('phoneNumber')}
-          error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
-          helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LocalPhoneIcon />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-        <TextField
-          label="Adresa"
-          placeholder='Str. Lucian Blaga, nr. 4, Mun. Baia Mare, Judet Maramures'
-          type="text"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          {...formik.getFieldProps('address')}
-          error={formik.touched.address && Boolean(formik.errors.address)}
-          helperText={formik.touched.address && formik.errors.address}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <HomeIcon />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
+        <Grid2 container columnGap={2}>
+          <Grid2 size={{
+            xs: 12,
+            md: 7
+          }}>
+            <TextField
+              label="Nume de familie"
+              variant="outlined"
+              placeholder='Nume de familie'
+              fullWidth
+              margin="normal"
+              {...formik.getFieldProps('lastName')}
+              error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+              helperText={formik.touched.lastName && formik.errors.lastName}
+            /> <TextField
+              label="Prenume"
+              variant="outlined"
+              placeholder='Prenume'
+              fullWidth
+              margin="normal"
+              {...formik.getFieldProps('firstName')}
+              error={formik.touched.firstName && Boolean(formik.errors.firstName)}
+              helperText={formik.touched.firstName && formik.errors.firstName}
+            /> <TextField
+              label="CNP"
+              variant="outlined"
+              placeholder='Cod Numeric Personal'
+              fullWidth
+              margin="normal"
+              {...formik.getFieldProps('cnp')}
+              error={formik.touched.cnp && Boolean(formik.errors.cnp)}
+              helperText={formik.touched.cnp && formik.errors.cnp}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <FingerprintIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+            <TextField
+              label="Numar de telefon"
+              placeholder='0770100100'
+              type="text"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              {...formik.getFieldProps('phoneNumber')}
+              error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
+              helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocalPhoneIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+            <TextField
+              label="Adresa"
+              placeholder='Str. Lucian Blaga, nr. 4, Mun. Baia Mare, Judet Maramures'
+              type="text"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              {...formik.getFieldProps('address')}
+              error={formik.touched.address && Boolean(formik.errors.address)}
+              helperText={formik.touched.address && formik.errors.address}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <HomeIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          </Grid2>
+          <Grid2 sx={{ marginTop: 2 }} size={{
+            xs: 12,
+            md: "grow"
+          }}>
+            <Box sx={{
+              border: theme => `1px solid #acb8be`,
+              borderRadius: '.2em',
+              padding: '.4em',
+            }}>
+
+              <Typography variant="body2">Detalii </Typography>
+              <Grid2 container>
+
+
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      {...formik.getFieldProps('details.fumator')}
+                      checked={Boolean(formik.values.details.fumator)}
+                    />
+                  }
+                  label="Fumător"
+                />
+
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      {...formik.getFieldProps('details.sarcinaActiva')}
+                      checked={Boolean(formik.values.details.sarcinaActiva)}
+                    />
+                  }
+                  label="Sarcină activă"
+                />
+
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      {...formik.getFieldProps('details.diabet')}
+                      checked={Boolean(formik.values.details.diabet)}
+                    />
+                  }
+                  label="Diabet"
+                />
+              </Grid2>
+            </Box>
+          </Grid2>
+        </Grid2>
+
         <Button type="button" onClick={() => setConfirming(true)} disabled={isSubmitDisabled} fullWidth size='large' variant='contained' color='primary' sx={{ marginTop: 2 }}>Modifica datele</Button>
       </form>
     </>

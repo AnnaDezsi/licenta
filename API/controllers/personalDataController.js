@@ -6,6 +6,9 @@ export const getPersonalData = async (req, res) => {
     const personalData = await prisma.personal_Data.findUnique({
       where: {
         userId
+      },
+      include: {
+        details: true
       }
     })
     res.status(200).json({ message: "Datele au fost agregate cu succes", data: personalData })
@@ -20,15 +23,18 @@ export const getPersonalDataById = async (req, res) => {
   try {
     const personalData = await prisma.personal_Data.findUnique({
       where: {
-        userId: +userId, 
-      }
+        userId: +userId,
+      },
+      include: {
+        details: true,
+      },
     });
-    
+
     if (!personalData) {
       return res.status(404).json({ error: "No personal data found for this user" });
     }
 
-    res.status(200).json({ message: "Datele au fost agregate cu succes", data: personalData });
+    res.status(200).json({data: personalData});
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: 'Eroare interna' });
@@ -37,12 +43,12 @@ export const getPersonalDataById = async (req, res) => {
 
 
 
+
 export const personalDataSetup = async (req, res) => {
-  const { cnp, firstName, lastName, address, phoneNumber } = req.body;
+  const { cnp, firstName, lastName, address, phoneNumber, details } = req.body;
   const { userId } = req.user;
 
   try {
-
     const existingPersonalData = await prisma.personal_Data.findUnique({
       where: { cnp }
     });
@@ -61,69 +67,71 @@ export const personalDataSetup = async (req, res) => {
         address,
         phoneNumber,
         user: { connect: { id: userId } },
+
+        details: {
+          create: {
+            fumator: details?.fumator ?? false,
+            sarcinaActiva: details?.sarcinaActiva ?? false,
+            diabet: details?.diabet ?? false,
+          }
+        }
       },
+      include: {
+        details: true,
+      }
     });
 
     res.status(201).json({
       message: "Datele au fost incarcate cu success!",
       data: personalData,
-    })
+    });
   } catch (error) {
-    console.error(error.message)
+    console.error(error.message);
     res.status(500).json({ error: 'Eroare interna' });
   }
+};
 
-}
 
 
 
 export const personalDataUpdate = async (req, res) => {
-  const { cnp, firstName, lastName, address, phoneNumber } = req.body;
-
+  const { cnp, firstName, lastName, address, phoneNumber, details } = req.body;
   const { userId } = req.user;
+
   try {
     await prisma.personal_Data.update({
-      where: {
-        userId,
-      },
+      where: { userId },
       data: {
         cnp,
         firstName,
         lastName,
         address,
-        phoneNumber
+        phoneNumber,
+        details: {
+          upsert: {
+            create: {
+              fumator: details?.fumator ?? false,
+              sarcinaActiva: details?.sarcinaActiva ?? false,
+              diabet: details?.diabet ?? false,
+            },
+            update: {
+              fumator: details?.fumator ?? false,
+              sarcinaActiva: details?.sarcinaActiva ?? false,
+              diabet: details?.diabet ?? false,
+            }
+          }
+        }
       },
-    })
-    res.status(200).json({ message: 'Datele au fost editate cu succes' })
+    });
+
+    res.status(200).json({ message: 'Datele au fost editate cu succes' });
   } catch (error) {
-    console.error(error.message)
+    console.error(error.message);
     res.status(500).json({ error: 'Eroare interna' });
   }
-}
+};
 
-export const userPersonalDataUpdate = async (req, res) => {
-  const { cnp, firstName, lastName, address, phoneNumber } = req.body;
 
-  const { userId } = req.params;
-  try {
-    await prisma.personal_Data.update({
-      where: {
-        userId: +userId,
-      },
-      data: {
-        cnp,
-        firstName,
-        lastName,
-        address,
-        phoneNumber
-      },
-    })
-    res.status(200).json({ message: 'Datele au fost editate cu succes' })
-  } catch (error) {
-    console.error(error.message)
-    res.status(500).json({ error: 'Eroare interna' });
-  }
-}
 
 export const getAllClients = async (req, res) => {
   try {
@@ -144,6 +152,13 @@ export const getAllClients = async (req, res) => {
             phoneNumber: true,
             createdAt: true,
             updatedAt: true,
+            details: {
+              select: {
+                fumator: true,
+                sarcinaActiva: true,
+                diabet: true,
+              },
+            },
           },
         },
       },
@@ -155,6 +170,7 @@ export const getAllClients = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching clients' });
   }
 };
+
 
 export const getAllUsers = async (_, res) => {
   try {
@@ -179,6 +195,13 @@ export const getAllUsers = async (_, res) => {
             phoneNumber: true,
             createdAt: true,
             updatedAt: true,
+            details: {
+              select: {
+                fumator: true,
+                sarcinaActiva: true,
+                diabet: true,
+              }
+            }
           },
         },
       },
@@ -190,6 +213,7 @@ export const getAllUsers = async (_, res) => {
     res.status(500).json({ error: 'An error occurred while fetching clients' });
   }
 }
+
 
 
 
