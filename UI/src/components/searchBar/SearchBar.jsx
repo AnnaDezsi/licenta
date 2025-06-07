@@ -12,7 +12,6 @@ export const SearchBar = () => {
       search: "",
     },
     onSubmit: (value) => {
-      console.log(value);
     },
   });
   return (

@@ -19,15 +19,16 @@ enum Analyze_Jornul_Type {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique
-  password      String
-  role          Role          @default(CLIENT)
-  createdAt     DateTime      @default(now())
-  personalData  Personal_Data?
-  files         FileS3[]
-  medicamentatie Medicamentatie[] @relation("UserMedicamentatie")
-
+  id             Int                 @id @default(autoincrement())
+  email          String              @unique
+  password       String
+  role           Role                @default(CLIENT)
+  createdAt      DateTime            @default(now())
+  personalData   Personal_Data?
+  files          FileS3[]
+  articles       Article[]           
+  medicamentatie Medicamentatie[]   @relation("UserMedicamentatie")
+  diagnoses      Medical_Diagnosis[]
 }
 
 model Personal_Data {
@@ -55,27 +56,30 @@ model Personal_Data_Details {
 }
 
 
+model Article {  
+  id           Int      @id @default(autoincrement())  
+  name         String   @db.VarChar(50) @unique
+  description  String   @db.Text
+  content      String   @db.Text
 
-model Informatii_Categorie_Boala{  
-  id          Int    @id @default(autoincrement())  
-  name        String @db.VarChar(50) @unique
-  description String @db.Text
-  content     String @db.Text
-  imageId     Int?   @unique
-  image       FileS3?  @relation(fields: [imageId], references: [id]) 
+  imageId      Int?     
+  image        FileS3?  @relation(fields: [imageId], references: [id])
+
+  uploadedById Int
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
 }
 
 model FileS3 {
-  id           Int      @id @default(autoincrement())
-  name         String   
-  uploaderId   Int      
-  uploadedAt   DateTime @default(now()) 
-  isDeleted    Boolean  @default(false) 
-  description  String?  
+  id           Int       @id @default(autoincrement())
+  name         String    
+  uploaderId   Int       
+  uploadedAt   DateTime  @default(now()) 
+  isDeleted    Boolean   @default(false) 
+  description  String?   
   mimeType     String
-  uploader     User     @relation(fields: [uploaderId], references: [id])
-  informatii   Informatii_Categorie_Boala? @relation
 
+  uploader     User      @relation(fields: [uploaderId], references: [id])
+  articles     Article[] // one-to-many relation: one image → many articles
 }
 
 model Medicamente {
@@ -101,5 +105,39 @@ model Medicamentatie {
   @@unique([name, userId]) 
 
 }
+
+
+model Medical_Disease_Category {
+  id          Int                  @id @default(autoincrement())
+  name        String               @db.VarChar(100)
+  description String               @db.Text
+  diseases    Medical_Disease[]
+}
+
+model Medical_Disease {
+  id               Int                       @id @default(autoincrement())
+  name             String                    @db.VarChar(100)
+  description      String                    @db.Text
+  categoryId       Int
+  category         Medical_Disease_Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  diagnosis        Medical_Diagnosis?
+}
+
+model Medical_Diagnosis {
+  id               Int               @id @default(autoincrement())
+  userId           Int
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  medicalDiseaseId Int               @unique
+  disease          Medical_Disease   @relation(fields: [medicalDiseaseId], references: [id], onDelete: Cascade)
+
+  startDate        DateTime
+  endDate          DateTime?
+  isChronic        Boolean
+  diagnosisMethod  String            @db.VarChar(100)
+  confirmed        Boolean
+  confirmedDate    DateTime
+}
+
 
 

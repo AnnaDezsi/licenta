@@ -28,7 +28,7 @@ export const Login = () => {
             email: '',
             password: '',
         },
-        validationSchema,
+        // validationSchema,
         onSubmit: async (values) => {
             setLoading(true)
             setErrorMessage("")

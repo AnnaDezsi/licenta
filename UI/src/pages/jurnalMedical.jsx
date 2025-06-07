@@ -251,15 +251,15 @@ const AnalyzeBoard = ({ results, title }) => {
                             </Grid2></Box>
                     </ListItem>
                 )) : <Box sx={{
-                        width: 1,
-                        height: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
+                    width: 1,
+                    height: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
 
-                        <Typography>Nu exista analize active</Typography>
-                    </Box>}
+                    <Typography>Nu exista analize active</Typography>
+                </Box>}
             </List>
         </Paper>
     )
@@ -289,8 +289,16 @@ const MedicBoard = ({ medicamentatie, title }) => {
                                 <Grid2 container>
                                     <Grid2 size={12}>
                                         <Typography sx={{ my: 1 }}>{med.name}</Typography>
+
                                         <Divider />
-                                        <Typography sx={{ my: 1 }}>{DateUtils.formatDate(med.startDate)} - {DateUtils.formatDate(med.endDate)}</Typography>
+                                        <Grid2 container alignItems="center">
+                                            <Grid2 size="grow">
+                                                <Typography sx={{ my: 1 }}>{DateUtils.formatDate(med.startDate)} - {DateUtils.formatDate(med.endDate)}</Typography>
+                                            </Grid2>
+                                            {new Date(med.startDate) > new Date() && <Grid2>
+                                                <Typography variant='body2' sx={{border: theme => `1px solid #00000030`, borderRadius: '5px', padding: '0 .2em'}}>Neinceput</Typography>
+                                            </Grid2>}
+                                        </Grid2>
                                         <Typography sx={{ fontWeight: 700 }}>Medicamentatie</Typography>
                                         {med?.medicines.map(medicine =>
                                             <Typography key={uuidv4()}>{medicine.quantity} x {medicine.name}</Typography>
@@ -314,6 +322,6 @@ const MedicBoard = ({ medicamentatie, title }) => {
 
 
             </List>
-        </Paper>
+        </Paper >
     )
 }

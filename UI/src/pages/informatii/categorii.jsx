@@ -27,7 +27,7 @@ export const Categorii = () => {
   const categories = useSelector(getAllCategories)
   useEffect(() => {
     if (!onParentPage) return
-    api("/info/boli").then(res => {
+    api("/article/boli").then(res => {
       const { data, message } = res.data
       dispatch(setInitialCategories(data))
     })
