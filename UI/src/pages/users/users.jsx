@@ -18,9 +18,6 @@ export const Users = () => {
 
     const match = useMatches(['/utilizatori']);
     const isOnUsersPage = match.length === 1;
-    console.log(match);
-
-
 
     useEffect(() => {
         if (!isOnUsersPage) return
@@ -53,6 +50,8 @@ export const Users = () => {
 
     const handleCloseModal = () => setDeleteModalOpen(false);
 
+
+
     if (!isOnUsersPage) return <Outlet />
     return (
         <>
@@ -83,10 +82,16 @@ export const Users = () => {
 
                                                 <TableCell>{client.email}</TableCell>
                                                 <TableCell>
-                                                    {client.personalData.firstName + " " + client.personalData.lastName}
+                                                    {!!client.personalData ?
+                                                        client.personalData?.firstName + " " + client.personalData?.lastName :
+                                                        "Necompletat"
+                                                    }
                                                 </TableCell>
                                                 <TableCell>{client.role}</TableCell>
-                                                <TableCell align="right">{client.personalData.phoneNumber}</TableCell>
+                                                <TableCell align="right"> {!!client.personalData ?
+                                                    client.personalData?.phoneNumber :
+                                                    "Necompletat"
+                                                } </TableCell>
                                                 <TableCell align="right">{DateUtils.formatDateTime(client.createdAt)}</TableCell>
                                                 <TableCell align="right">
                                                     <IconButton
@@ -97,7 +102,7 @@ export const Users = () => {
                                                     </IconButton>
                                                     <IconButton
                                                         size="small"
-                                                        onClick={() => handleDeleteClick(users.id)}
+                                                        onClick={() => handleDeleteClick(client.id)}
                                                     >
                                                         {<DeleteIcon color="error" />}
                                                     </IconButton>

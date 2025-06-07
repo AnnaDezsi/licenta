@@ -34,7 +34,7 @@ export const getPersonalDataById = async (req, res) => {
       return res.status(404).json({ error: "No personal data found for this user" });
     }
 
-    res.status(200).json({data: personalData});
+    res.status(200).json({ data: personalData });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: 'Eroare interna' });
@@ -42,13 +42,33 @@ export const getPersonalDataById = async (req, res) => {
 };
 
 
+export const savePersonalDataById = async (req, res) => {
+  const { userId: paramUserId } = req.params;
+  // console.log(paramUserId);
+  const userId = parseInt(paramUserId);
+
+  const personalData = await prisma.personal_Data.findUnique({
+    where: {
+      userId
+    }
+  })
+
+  return Boolean(personalData) ? updatePersonalDataById(req, res) : personalDataSetup(req, res)
+}
+
 
 
 export const personalDataSetup = async (req, res) => {
   const { cnp, firstName, lastName, address, phoneNumber, details } = req.body;
-  const { userId } = req.user;
+  const { userId: paramUserId } = req.params;
 
   try {
+    let userId = parseInt(paramUserId);
+
+    if (paramUserId == null) {
+      userId = req.user.userId
+    }
+
     const existingPersonalData = await prisma.personal_Data.findUnique({
       where: { cnp }
     });
@@ -94,11 +114,12 @@ export const personalDataSetup = async (req, res) => {
 
 
 
-export const personalDataUpdate = async (req, res) => {
+export const updatePersonalDataById = async (req, res) => {
   const { cnp, firstName, lastName, address, phoneNumber, details } = req.body;
-  const { userId } = req.user;
+  const { userId: paramUserId } = req.params;
 
   try {
+    const userId = parseInt(paramUserId);
     await prisma.personal_Data.update({
       where: { userId },
       data: {

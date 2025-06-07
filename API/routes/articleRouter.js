@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { authenticateToken } from '../middleware/authMiddleware.js';
-import { getAllNameAndDescription, getByName } from '../controllers/infoController.js';
+import { getAllNameAndDescription, getByName } from '../controllers/articleController.js';
 
 const router = express.Router();
 router.get('/boli', authenticateToken, getAllNameAndDescription)

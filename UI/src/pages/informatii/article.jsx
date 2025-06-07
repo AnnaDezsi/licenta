@@ -24,9 +24,8 @@ export const Article = () => {
 
 
     useEffect(() => {
-        api(`/info/${encodedArticleName}`).then(res => {
+        api(`/article/${encodedArticleName}`).then(res => {
             const { data, message } = res.data
-            console.log(data);
 
             dispatch(setInitialCategories([data]))
         })

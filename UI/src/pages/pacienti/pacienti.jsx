@@ -9,10 +9,18 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 export const Pacienti = () => {
     const [clients, setClients] = useState([]);
-    const [openRows, setOpenRows] = useState({}); // Manage open state for each row
+    const [openRows, setOpenRows] = useState({});
 
     useEffect(() => {
-        api('/personal/clients').then(res => setClients(res.data))
+        api('/personal/clients').then(res => {
+            try {
+                const { data } = res;
+                const userWithCompletedPersonalData = data.filter(user => Boolean(user.personalData))
+                setClients(userWithCompletedPersonalData)
+            } catch (e) {
+                console.error("Eroare setare pacienti")
+            }
+        })
     }, [])
 
     const toggleRow = (id) => {

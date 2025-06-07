@@ -4,10 +4,9 @@ import dotenv from 'dotenv'
 import { logRequest } from './config/index.js';
 import checkDbConnection from './utils/runningDatabase.js';
 import cors from 'cors';
-import testRouter from './routes/testRouter.js';
 import userRouter from './routes/userRouter.js';
 import personalDataRouter from './routes/personalDataRouter.js';
-import infoRouter from './routes/infoRouter.js';
+import articleRouter from './routes/articleRouter.js';
 import fileRouter from './routes/fileRouter.js';
 import medicamenteRouter from './routes/medicamenteRouter.js';
 import medicamentatieRouter from './routes/medicamentatieRouter.js';
@@ -21,10 +20,9 @@ app.use(logRequest);
 app.use(cors())
 
 
-app.use('/api/test', testRouter);
 app.use('/api/auth', userRouter);
 app.use('/api/personal', personalDataRouter);
-app.use('/api/info', infoRouter);
+app.use('/api/article', articleRouter);
 app.use('/api/file', fileRouter);
 app.use("/api/medicamente", medicamenteRouter);
 app.use("/api/medicamentatie", medicamentatieRouter);

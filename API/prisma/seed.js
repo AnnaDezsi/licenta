@@ -8,8 +8,8 @@ async function main() {
   
   await prisma.user.create({
     data: {
-      email: 'ROOT',
-      password: await bcrypt.hash("admin", 10),
+      email: 'root@licentamedicala.ro',
+      password: await bcrypt.hash("contadmin", 10),
       role: 'ADMIN',
     },
   });

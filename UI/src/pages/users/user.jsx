@@ -23,22 +23,17 @@ export const User = () => {
   };
 
 
-
 useEffect(() => {
   if (!userId) return;
 
   api(`/personal/user/${userId}`)
     .then(res => {
-      const { cnp, firstName, lastName, address, phoneNumber } = res.data.data
-      setUserData({
-        cnp, firstName, lastName, address, phoneNumber
-      })
+      setUserData(res.data.data)
     })
 
 }
   , [userId])
 
-if (!userData) return;
 
 return <PersonalDataForm datePersonale={userData} handleSubmit={handleSubmit} />
 

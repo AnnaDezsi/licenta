@@ -31,7 +31,6 @@ export const ProtectedRoutes = ({ children }) => {
             return response.data.data
         })
             .then(data => {
-                console.log(data)
                 dispatch(setAuthProfileRole(data.role))
                 if ((!personalDataAlreadySetup && GenericUtils.otherKeysExcept(data.personalData, "userId"))) {
                     dispatch(setAuthPersonalData(data.personalData))

@@ -71,9 +71,9 @@ const initialValues = (datePersonale) => ({
   address: datePersonale?.address || "",
   phoneNumber: datePersonale?.phoneNumber || "",
   details: {
-    fumator: datePersonale?.details.fumator || false,
-    sarcinaActiva: datePersonale?.details.sarcinaActiva || false,
-    diabet: datePersonale?.details.diabet || false
+    fumator: datePersonale?.details?.fumator || false,
+    sarcinaActiva: datePersonale?.details?.sarcinaActiva || false,
+    diabet: datePersonale?.details?.diabet || false
   }
 })
 
@@ -95,9 +95,9 @@ export const PersonalDataForm = ({ datePersonale, handleSubmit }) => {
     },
   })
 
+
   const memoizedChangedFields = useMemo(() => {
-    if (!datePersonale) return {};
-    return modifiedFields(datePersonale, formik.values, [
+    return modifiedFields(initialValues(datePersonale), formik.values, [
       "cnp",
       "firstName",
       "lastName",
@@ -116,7 +116,9 @@ export const PersonalDataForm = ({ datePersonale, handleSubmit }) => {
     setConfirming(false)
   }
 
-  const isSubmitDisabled = memoizedChangedFields ? Object.keys(formik.errors).length !== 0 || !Object.keys(memoizedChangedFields).length : true
+
+  const isSubmitDisabled = Boolean(Object.keys(memoizedChangedFields)) ? Object.keys(formik.errors).length !== 0 || !Object.keys(memoizedChangedFields).length : true;
+
   return (
     <>
 
