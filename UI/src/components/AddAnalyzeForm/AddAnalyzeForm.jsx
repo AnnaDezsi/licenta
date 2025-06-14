@@ -1,5 +1,5 @@
 import { FieldArray, Formik, FormikProvider, useFormik } from 'formik'
-import { Box, Button, Grid2, Step, StepLabel, Stepper, TextField, Typography } from '@mui/material'
+import { Box, Button, Grid2, IconButton, Step, StepLabel, Stepper, TextField, Typography } from '@mui/material'
 import { useDropzone } from 'react-dropzone'
 import api from '../../services/axiosConfig';
 import { useEffect } from 'react';
@@ -17,6 +17,7 @@ import { convertManyToLabelAndValue } from '../../utilities/convertors';
 import { useMemo } from 'react';
 import { setAnalyzeCategories } from '../../store/journal/action';
 import { useCallback } from 'react';
+import ClearIcon from '@mui/icons-material/Clear';
 
 
 const steps = [
@@ -74,11 +75,15 @@ export const AddAnalyzeForm = () => {
     })
 
     const initiateFirstCategory = useCallback((categoryWithOneParameter) => {
+        const parameters = [{
+            name: categoryWithOneParameter?.parameters[0]?.name || "",
+            value: categoryWithOneParameter?.parameters[0]?.min_val || 0
+        }]
 
         analyzesForm.setFieldValue("categories", [
             {
                 name: categoryWithOneParameter.name,
-                parameters: [categoryWithOneParameter?.parameters[0]]
+                parameters
             }
         ]);
     }, [categoriiMedicale])
@@ -160,17 +165,87 @@ export const AddAnalyzeForm = () => {
         return convertManyToLabelAndValue(categoriiMedicale, "name");
     }, [categoriiMedicale]);
 
-    const changeAnalyzeCategory = useCallback((newValue, actionMeta, categoryIndex) => {
+    const changeAnalyzeCategory = (newValue, actionMeta, categoryIndex) => {
         if (actionMeta.action !== 'select-option') return
         analyzesForm.setFieldValue(`categories[${categoryIndex}].name`, newValue.value)
         const parameters = categoriiMedicale.find(cat => cat.name === newValue.value)?.parameters || [];
-        analyzesForm.setFieldValue(`categories[${categoryIndex}].parameters`, [parameters[0] || []])
-    }, [categoriiMedicale])
 
-    const changeAnalyzeParameter = useCallback((newValue, actionMeta, index, paramIndex) => {
+        const newParameters = parameters.length > 0 ? [{
+            name: parameters[0]?.name || "",
+            value: parameters[0]?.min_val || 0,
+        }] : []
+
+        analyzesForm.setFieldValue(`categories[${categoryIndex}].parameters`, newParameters)
+    }
+
+    const changeAnalyzeParameter = (newValue, actionMeta, index, paramIndex) => {
         if (actionMeta.action !== 'select-option') return
         analyzesForm.setFieldValue(`categories[${index}].parameters[${paramIndex}].name`, newValue.value)
-    }, [categoriiMedicale])
+    }
+
+
+    const remainingParametersForCategoryIndex = (categoryName) => {
+        const allPossibleParameters = categoriiMedicale.find(cat => cat.name === categoryName)?.parameters || [];
+        const alreadySelectedParameters = analyzesForm.values.categories.find(cat => cat.name === categoryName)?.parameters || [];
+        return allPossibleParameters.filter(param => !alreadySelectedParameters.some(p => p.name === param.name));
+    }
+
+    const handleAddCategory = () => {
+
+        const addedCategories = analyzesForm.values.categories.map(cat => cat.name);
+        const remainingCategories = categoriiMedicale.filter(cat => !addedCategories.includes(cat.name));
+
+        console.log("Remaining categories:", remainingCategories);
+        if (remainingCategories.length > 0) {
+
+            analyzesForm.setFieldValue("categories", [
+                ...analyzesForm.values.categories,
+                {
+                    name: remainingCategories[0].name,
+                    parameters: !!remainingCategories[0].parameters.length ? [{
+                        name: remainingCategories[0].parameters[0]?.name || "",
+                        value: remainingCategories[0].parameters[0]?.min_val || 0,
+                    }] : []
+                }
+            ]);
+
+        }
+    }
+
+    const handleDeleteCategory = (categoryName) => {
+        const updatedCategories = analyzesForm.values.categories.filter(cat => cat.name !== categoryName);
+        if (updatedCategories.length >= 1) {
+            analyzesForm.setFieldValue("categories", updatedCategories);
+        }
+    }
+
+    const handleAddParameterToCategory = (categoryName) => {
+        const remainingParameters = remainingParametersForCategoryIndex(categoryName);
+
+        if (remainingParameters.length > 0) {
+            const parameters = {
+                name: remainingParameters[0].name,
+                value: remainingParameters[0].min_val || 0,
+            }
+            const categoryIndex = analyzesForm.values.categories.findIndex(cat => cat.name === categoryName);
+            analyzesForm.setFieldValue(`categories[${categoryIndex}].parameters`, [
+                ...analyzesForm.values.categories[categoryIndex].parameters,
+                parameters
+            ]);
+        }
+    }
+
+
+    const handleDeleteParameter = (categoryName, paramName) => {
+        const categoryIndex = analyzesForm.values.categories.findIndex(cat => cat.name === categoryName);
+        const updatedParameters = analyzesForm.values.categories[categoryIndex].parameters.filter(param => param.name !== paramName);
+        if (updatedParameters.length >= 1) {
+            analyzesForm.setFieldValue(`categories[${categoryIndex}].parameters`, updatedParameters);
+        }
+    }
+
+    console.log(analyzesForm.values);
+
 
     return (
         <form onSubmit={analyzesForm.handleSubmit}>
@@ -239,35 +314,94 @@ export const AddAnalyzeForm = () => {
                             <FieldArray name="categories" render={(arrayHelpers) => {
 
                                 return analyzesForm.values.categories.map((category, index) => (
-                                    <Grid2 key={`category-${category.name}`} size={12}>
-                                        <Grid2 container direction="column">
+                                    <Grid2 key={`category-${category.name}`} size={12} sx={{
+                                        border: "1px solid rgba(0, 0, 0, 0.16)",
+                                        backgroundColor: "rgba(0, 0, 0, 0.04)",
+                                        p: 2,
+                                        borderRadius: 2,
+                                        m: 0
+                                    }}>
+                                        <Grid2 container direction="column" spacing={2}>
                                             <Grid2 size={12}>
-                                                <PrimarySelector
-                                                    options={categoriesAsOptions}
-                                                    value={categoriesAsOptions.find(cat => cat.value === category.name)}
-                                                    onChange={(newValue, actionMeta) => changeAnalyzeCategory(newValue, actionMeta, index)}
-                                                    label="Selecteaza o categorie medicala"
-                                                    key={index}
-                                                />
+                                                <Grid2 container alignItems="center" justifyContent="space-between">
+                                                    <Grid2 size="grow">
+                                                        <PrimarySelector
+                                                            options={categoriesAsOptions}
+                                                            value={categoriesAsOptions.find(cat => cat.value === category.name)}
+                                                            onChange={(newValue, actionMeta) => changeAnalyzeCategory(newValue, actionMeta, index)}
+                                                            label="Selecteaza o categorie medicala"
+                                                            key={index}
+                                                        />
+                                                    </Grid2>
+                                                    <Grid2 size="auto">
+                                                        <IconButton disabled={analyzesForm.values.categories.length <= 1} color="error" onClick={() => handleDeleteCategory(category.name)}>
+                                                            <ClearIcon />
+                                                        </IconButton>
+                                                    </Grid2>
+                                                </Grid2>
+
                                             </Grid2>
                                             <Grid2 size={12}>
                                                 {category?.parameters.map((parameter, paramIndex) => {
                                                     const allPossibleParameters = categoriiMedicale.find(cat => cat.name === category.name)?.parameters || [];
                                                     
-                                                    const remainingParameters = allPossibleParameters.filter(param => param.name !== parameter.name);
-                                                    
+                                                    const alreadySelectedParameters = analyzesForm.values.categories.find(cat => cat.name === category.name)?.parameters || [];
+
+                                                    const remainingParameters = allPossibleParameters.filter(param => !alreadySelectedParameters.some(p => p.name === param.name));
+                                            
+
                                                     const possibleOptions = convertManyToLabelAndValue(allPossibleParameters, "name") || [];
                                                     const parameterOptions = convertManyToLabelAndValue(remainingParameters, "name") || []
+
+                                                    const { min_val, max_val, unit } = allPossibleParameters.find(param => param.name === parameter.name) || { min_val: 0, max_val: 0, unit: "N/A" };
                                                     return (
-                                                        <PrimarySelector
-                                                            options={parameterOptions}
-                                                            value={possibleOptions.find(param => param.value === parameter.name)}
-                                                            onChange={(newValue, actionMeta) => changeAnalyzeParameter(newValue, actionMeta, index, paramIndex)}
-                                                            label="Selecteaza o categorie medicala"
-                                                            key={paramIndex}
-                                                        />)
+                                                        <Grid2 key={`category-${category.name}-parameter-${parameter.name}`} container alignItems="center" columnGap={2} justifyContent="space-between" sx={{ mb: paramIndex === category.parameters.length - 1 ? 0 : 1 }}>
+                                                            <Grid2 size={5}>
+                                                                <PrimarySelector
+                                                                    options={parameterOptions}
+                                                                    value={possibleOptions.find(param => param.value === parameter.name)}
+                                                                    onChange={(newValue, actionMeta) => changeAnalyzeParameter(newValue, actionMeta, index, paramIndex)}
+                                                                    label="Selecteaza o categorie medicala"
+                                                                    key={paramIndex}
+                                                                />
+                                                            </Grid2>
+                                                            <Grid2 size="grow">
+                                                                <Typography variant='body2' textAlign="right">
+                                                                    Min: {min_val} - Max: {max_val}
+                                                                </Typography>
+                                                            </Grid2>
+                                                            <Grid2 size={2}>
+                                                                <TextField
+                                                                    fullWidth
+                                                                    type="number"
+                                                                    {...analyzesForm.getFieldProps(`categories[${index}].parameters[${paramIndex}].value`)}
+                                                                    label="Valoare"
+                                                                    variant="outlined"
+                                                                />
+                                                            </Grid2>
+
+                                                            <Grid2 size={1}>
+                                                                <Typography variant='body2'>
+                                                                    {unit}
+                                                                </Typography>
+                                                            </Grid2>
+
+                                                            <Grid2 size="auto">
+                                                                <IconButton disabled={allPossibleParameters.length -1  === remainingParameters.length} color="error" onClick={() => handleDeleteParameter(category.name, parameter.name)}>
+                                                                    <ClearIcon />
+                                                                </IconButton>
+                                                            </Grid2>
+
+                                                        </Grid2>
+                                                    )
                                                 })}
                                             </Grid2>
+                                            {remainingParametersForCategoryIndex(category.name).length > 0 &&
+                                                <Grid2 size="grow">
+                                                    <Button sx={{ m: 0, p: 0 }} onClick={() => handleAddParameterToCategory(category.name)}>Adauga parametru</Button>
+                                                </Grid2>
+                                            }
+
                                         </Grid2>
                                     </Grid2>
                                 ))
@@ -275,6 +409,11 @@ export const AddAnalyzeForm = () => {
 
                             } />
                         </FormikProvider>
+                        <Grid2 size={12}>
+                            <Button variant="outlined" onClick={handleAddCategory}>
+                                Adauga o noua categorie
+                            </Button>
+                        </Grid2>
                     </Grid2>
                 }
                 <Grid2 direction="row" alignItems="center" justifyContent="center" container sx={{ mt: 2 }} columnGap={2}>
