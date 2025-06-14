@@ -109,7 +109,7 @@ model Medicamentatie {
 
 model Medical_Category {
   id          Int                  @id @default(autoincrement())
-  name        String               @db.VarChar(100)
+  name        String               @unique @db.VarChar(100) 
   description String               @db.Text
   diseases    Medical_Disease[]
   parameters  Medical_Parameter[]
@@ -149,6 +149,9 @@ model Medical_Parameter {
   max_val            Float?
   medicalCategoryId  Int
   category           Medical_Category @relation(fields: [medicalCategoryId], references: [id], onDelete: Cascade)
+
+  @@unique([name, medicalCategoryId])
+
 }
 
 

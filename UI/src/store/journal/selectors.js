@@ -1,9 +1,20 @@
 
 import { createSelector } from 'reselect'
 
-export const getJornalSelector = createSelector(
+export const getMedicalJournal = createSelector(
     [state => state], 
     state => state.journal 
+)
+
+
+export const getMedicamentation = createSelector(
+    [getMedicalJournal],
+    journal => journal.medicamentatie
+)
+
+export const getAnalyzes = createSelector(
+    [getMedicalJournal],
+    journal => journal.analyzes
 )
 
 

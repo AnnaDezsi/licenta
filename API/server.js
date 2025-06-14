@@ -10,6 +10,7 @@ import articleRouter from './routes/articleRouter.js';
 import fileRouter from './routes/fileRouter.js';
 import medicamenteRouter from './routes/medicamenteRouter.js';
 import medicamentatieRouter from './routes/medicamentatieRouter.js';
+import analizeRouter from './routes/analizeRouter.js';
 import prisma from './config/databaseInstance.js';
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use('/api/article', articleRouter);
 app.use('/api/file', fileRouter);
 app.use("/api/medicamente", medicamenteRouter);
 app.use("/api/medicamentatie", medicamentatieRouter);
+app.use("/api/analize/", analizeRouter);
 
 
 app.use((req, res) => {
