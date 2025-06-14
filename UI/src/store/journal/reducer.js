@@ -1,10 +1,9 @@
-import { SET_INITIAL_MEDS, RESET_JOURNAL, ADD_MED } from './action'
+import { SET_INITIAL_MEDS, RESET_JOURNAL, ADD_MED, SET_ANALYZE_CATEGORIES    } from './action'
 
 const initialState = {
     medicamentatie: {
         activeMeds: [],
-        retroMeds: [],
-        analyzes: []
+        retroMeds: []
     },
 
     analyzes: {
@@ -37,8 +36,11 @@ const journalReducer = (state = initialState, action) => {
 
             return {
                 ...state,
-                activeMeds,
-                retroMeds,
+                medicamentatie: {
+                    ...state.medicamentatie,
+                    activeMeds: [...activeMeds],
+                    retroMeds: [...retroMeds],
+                },
             }
         }
 
@@ -58,6 +60,17 @@ const journalReducer = (state = initialState, action) => {
 
         case RESET_JOURNAL: {
             return initialState;
+        }
+
+        case SET_ANALYZE_CATEGORIES: {
+            console.log(action.payload)
+            return {
+                ...state,
+                analyzes: {
+                    ...state.analyzes,
+                    categoriiMedicale: action.payload
+                }
+            }
         }
 
 

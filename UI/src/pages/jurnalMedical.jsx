@@ -25,7 +25,7 @@ export const JurnalMedical = () => {
     const dispatch = useDispatch();
 
 
-    const { activeMeds, retroMeds, analyzes } = useSelector(getMedicamentation);
+    const { activeMeds, retroMeds } = useSelector(getMedicamentation);
 
 
 
@@ -158,7 +158,7 @@ export const JurnalMedical = () => {
                         xs: 12,
                         xl: 4
                     }}>
-                        <AnalyzeBoard results={analyzes} title="Analizele mele" />
+                        <AnalyzeBoard results={[]} title="Analizele mele" />
                     </Grid2>
                     <Grid2 size={{
                         xs: 12,

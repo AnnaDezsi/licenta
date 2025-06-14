@@ -1,6 +1,7 @@
 export const SET_INITIAL_MEDS = "SET_INITIAL_MEDS"
 export const ADD_MED = "ADD_MED"
 export const RESET_JOURNAL = "RESET_JOURNAL"
+export const SET_ANALYZE_CATEGORIES = "SET_ANALYZE_CATEGORIES"
 
 
 export const setInitialMeds = (payload) => ({
@@ -17,5 +18,10 @@ export const resetJournal = () => ({
     type: RESET_JOURNAL
 })
 
+
+export const setAnalyzeCategories = (payload) => ({
+    type: SET_ANALYZE_CATEGORIES,
+    payload
+})
 
 
