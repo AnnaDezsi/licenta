@@ -107,37 +107,50 @@ model Medicamentatie {
 }
 
 
-model Medical_Disease_Category {
+model Medical_Category {
   id          Int                  @id @default(autoincrement())
   name        String               @db.VarChar(100)
   description String               @db.Text
   diseases    Medical_Disease[]
+  parameters  Medical_Parameter[]
 }
 
 model Medical_Disease {
-  id               Int                       @id @default(autoincrement())
-  name             String                    @db.VarChar(100)
-  description      String                    @db.Text
-  categoryId       Int
-  category         Medical_Disease_Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  diagnosis        Medical_Diagnosis?
+  id          Int              @id @default(autoincrement())
+  name        String           @db.VarChar(100)
+  description String           @db.Text
+  categoryId  Int
+  category    Medical_Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  diagnosis   Medical_Diagnosis?
 }
 
 model Medical_Diagnosis {
-  id               Int               @id @default(autoincrement())
+  id               Int              @id @default(autoincrement())
   userId           Int
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  medicalDiseaseId Int               @unique
-  disease          Medical_Disease   @relation(fields: [medicalDiseaseId], references: [id], onDelete: Cascade)
+  medicalDiseaseId Int              @unique
+  disease          Medical_Disease  @relation(fields: [medicalDiseaseId], references: [id], onDelete: Cascade)
 
   startDate        DateTime
   endDate          DateTime?
   isChronic        Boolean
-  diagnosisMethod  String            @db.VarChar(100)
+  diagnosisMethod  String           @db.VarChar(100)
   confirmed        Boolean
   confirmedDate    DateTime
 }
+
+model Medical_Parameter {
+  id                 Int              @id @default(autoincrement())
+  name               String           @db.VarChar(100)
+  unit               String           @db.VarChar(20)
+  type               String           @db.VarChar(50)
+  min_val            Float?
+  max_val            Float?
+  medicalCategoryId  Int
+  category           Medical_Category @relation(fields: [medicalCategoryId], references: [id], onDelete: Cascade)
+}
+
 
 
 
