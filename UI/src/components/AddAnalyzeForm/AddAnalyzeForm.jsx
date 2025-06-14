@@ -18,6 +18,7 @@ import { useMemo } from 'react';
 import { setAnalyzeCategories } from '../../store/journal/action';
 import { useCallback } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
+import BackupIcon from '@mui/icons-material/Backup';
 
 
 const steps = [
@@ -64,6 +65,7 @@ export const AddAnalyzeForm = () => {
                 formData.append("file", values.file);
                 // Submit the form data to the server
 
+                setCurrentStep(prev => prev + 1);
 
             } catch (error) {
                 console.error("Error submitting analyze form:", error);
@@ -111,53 +113,31 @@ export const AddAnalyzeForm = () => {
             });
     }, [])
 
-    // const addNewCategory = (category) => {
-    //     // Check if the category already exists in the form
-    //     const existingCategory = analyzesForm.values.categories.find(cat => cat.id === category.id);
-    //     if (!existingCategory) {
-    //         analyzesForm.setFieldValue("categories", [...analyzesForm.values.categories, category]);
-    //     }
-    // }
 
-    //   const analyzesForm = useFormik({
-    //         initialValues: {
-    //             medicalAnalyzes: "",
-    //             file: null
-    //         },
-    //         onSubmit: async (values) => {
-    //             try {
-    //                 const formData = new FormData();
-    //                 formData.append("file", values.file);
-    //                 formData.append("medicalAnalyzes", values.medicalAnalyzes)
-    //             } catch (error) {
-    //                 console.log(error);
+    const { getRootProps, getInputProps } = useDropzone({
+        accept: {
+            "application/pdf": [".pdf"]
+        },
+        onDrop: (acceptedFiles) => {
+            analyzesForm.setFieldValue("file", acceptedFiles[0]);
+        },
+    });
 
-    //             }
-    //         }
-    //     })
+    const handleAnalyzeChange = (e) => {
+        analyzesForm.setFieldValue("notes", e.target.value)
+    }
 
-    //         const { getRootProps, getInputProps } = useDropzone({
-    //     accept: {
-    //         "application/pdf": [".pdf"]
-    //     },
-    //     onDrop: (acceptedFiles) => {
-    //         analyzesForm.setFieldValue("file", acceptedFiles[0]);
-    //     },
-    // });
-
-    // const handleAnalyzeChange = (e) => {
-    //     analyzesForm.setFieldValue("medicalAnalyzes", e.target.value)
-    // }
-
-    // const handleDeleteFile = (e) => {
-    //     analyzesForm.setFieldValue("file", null)
-    // }
+    const handleDeleteFile = (e) => {
+        analyzesForm.setFieldValue("file", null)
+    }
 
     const handleNextStep = () => {
+        if (currentStep >= steps.length - 2) return;
         setCurrentStep((prev) => prev + 1)
     }
 
     const handlePrevStep = () => {
+        if (currentStep === 0) return;
         setCurrentStep((prev) => prev - 1)
     }
 
@@ -191,11 +171,9 @@ export const AddAnalyzeForm = () => {
     }
 
     const handleAddCategory = () => {
-
         const addedCategories = analyzesForm.values.categories.map(cat => cat.name);
         const remainingCategories = categoriiMedicale.filter(cat => !addedCategories.includes(cat.name));
 
-        console.log("Remaining categories:", remainingCategories);
         if (remainingCategories.length > 0) {
 
             analyzesForm.setFieldValue("categories", [
@@ -243,9 +221,6 @@ export const AddAnalyzeForm = () => {
             analyzesForm.setFieldValue(`categories[${categoryIndex}].parameters`, updatedParameters);
         }
     }
-
-    console.log(analyzesForm.values);
-
 
     return (
         <form onSubmit={analyzesForm.handleSubmit}>
@@ -344,11 +319,11 @@ export const AddAnalyzeForm = () => {
                                             <Grid2 size={12}>
                                                 {category?.parameters.map((parameter, paramIndex) => {
                                                     const allPossibleParameters = categoriiMedicale.find(cat => cat.name === category.name)?.parameters || [];
-                                                    
+
                                                     const alreadySelectedParameters = analyzesForm.values.categories.find(cat => cat.name === category.name)?.parameters || [];
 
                                                     const remainingParameters = allPossibleParameters.filter(param => !alreadySelectedParameters.some(p => p.name === param.name));
-                                            
+
 
                                                     const possibleOptions = convertManyToLabelAndValue(allPossibleParameters, "name") || [];
                                                     const parameterOptions = convertManyToLabelAndValue(remainingParameters, "name") || []
@@ -387,7 +362,7 @@ export const AddAnalyzeForm = () => {
                                                             </Grid2>
 
                                                             <Grid2 size="auto">
-                                                                <IconButton disabled={allPossibleParameters.length -1  === remainingParameters.length} color="error" onClick={() => handleDeleteParameter(category.name, parameter.name)}>
+                                                                <IconButton disabled={allPossibleParameters.length - 1 === remainingParameters.length} color="error" onClick={() => handleDeleteParameter(category.name, parameter.name)}>
                                                                     <ClearIcon />
                                                                 </IconButton>
                                                             </Grid2>
@@ -409,17 +384,96 @@ export const AddAnalyzeForm = () => {
 
                             } />
                         </FormikProvider>
-                        <Grid2 size={12}>
+                        {analyzesForm.values.categories.length !== categoriiMedicale.length && <Grid2 size={12}>
                             <Button variant="outlined" onClick={handleAddCategory}>
                                 Adauga o noua categorie
                             </Button>
+                        </Grid2>}
+                    </Grid2>
+                }
+                {currentStep === 3 &&
+                    <Grid2 container spacing={2} size={{ maxWidth: 800, margin: '0 auto' }}>
+                        <Grid2 size={6}>
+                            <textarea onChange={handleAnalyzeChange} style={{
+                                height: 200,
+                                width: '100%',
+                                fontSize: '1.2em',
+                                border: "2px solid #00B4D8",
+                                maxHeight: '100%',
+                                maxWidth: '100%',
+                                fontSize: '14px',
+                                fontFamily: 'Roboto, sans-serif',
+                                backgroundColor: "#fffffc9",
+                                borderRadius: '5px'
+                            }} placeholder='Adauga detalii...' />
+
+                        </Grid2>
+                        <Grid2 size={6}>
+                            {analyzesForm.values.file ? <Box sx={{
+                                height: 200,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: (theme) => `2px dashed ${theme.palette.primary.main}`,
+                                padding: "20px",
+                                textAlign: "center",
+                                columnGap: '2em',
+                                position: 'relative'
+                            }}><Typography variant='body1' fontWeight={500}>{analyzesForm.values.file.name}</Typography>
+                                <Button variant="text" size='large' color="error" onClick={handleDeleteFile} startIcon={<DeleteIcon />}>
+                                    Sterge fisierul
+                                </Button>
+                            </Box> :
+                                <Box
+                                    {...getRootProps()}
+                                    sx={{
+                                        height: 200,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: (theme) => `2px dashed ${theme.palette.primary.main}`,
+                                        padding: "20px",
+                                        cursor: "pointer",
+                                        textAlign: "center",
+                                        borderRadius: '5px',
+                                        position: 'relative'
+                                    }}
+                                >
+                                    <Box sx={{
+                                        top: '50%',
+                                        left: '50%',
+                                        position: 'absolute',
+                                        transform: 'translate(-50%, -50%)',
+                                    }}>
+                                        <BackupIcon sx={{ fontSize: '200px', width: 200, height: 200, color: '#90909050' }} />
+                                    </Box>
+                                    <input {...getInputProps()} id="file" name="file" type="file" />
+
+                                    <Typography>(Optional) Pentru o acuratete mai buna a viitoarelor analize,
+                                        <br /> te rugam sa adaugi si ultimele analize medicale in format PDF.</Typography>
+
+                                </Box>
+                            }
                         </Grid2>
                     </Grid2>
                 }
-                <Grid2 direction="row" alignItems="center" justifyContent="center" container sx={{ mt: 2 }} columnGap={2}>
-                    <Button variant="contained" color='primary' onClick={handlePrevStep}>Inapoi</Button>
-                    <Button variant="contained" color='primary' onClick={handleNextStep}>Inainte</Button>
-                </Grid2>
+                {currentStep === 4 && <Grid2 container spacing={2} size={{ maxWidth: 800, margin: '0 auto' }}>
+                    <Grid2 size={12}>
+                        <Typography variant='h6'>Analiza a fost adaugata cu succes!</Typography>
+                    </Grid2>
+                    <Grid2 size={12}>
+                        <Typography variant='body1'>Pentru a vizualiza analiza, te rugam sa accesezi sectiunea "Jurnal" din meniul principal.</Typography>
+                    </Grid2>
+                </Grid2>}
+                {currentStep !== steps.length - 1 && <Grid2 direction="row" alignItems="center" justifyContent="center" container sx={{ mt: 2 }} columnGap={2}>
+                    {currentStep !== 0 && <Button variant="contained" color='primary' onClick={handlePrevStep}>Inapoi</Button>}
+                    {
+                        currentStep < steps.length - 2 ?
+                            <Button variant="contained" color='primary' onClick={handleNextStep}>Inainte</Button> :
+                            <Button variant="contained" color='primary' type="submit">Finalizare</Button>
+                    }
+                </Grid2>}
+
             </Box>
         </form>
 
@@ -430,74 +484,3 @@ export const AddAnalyzeForm = () => {
 
 
 
-// <form onSubmit={analyzesForm.handleSubmit}>
-//     <Grid2 container spacing={2}>
-//         <Grid2 size={6}>
-//             <textarea onChange={handleAnalyzeChange} style={{
-//                 height: 200,
-//                 width: '100%',
-//                 fontSize: '1.2em',
-//                 border: "2px solid #00B4D8",
-//                 backgroundColor: "#fffffc9",
-//                 borderRadius: '5px'
-//             }} placeholder='Leucocite 20ul/l' />
-
-//         </Grid2>
-//         <Grid2 size={6}>
-//             {analyzesForm.values.file ? <Box sx={{
-//                 height: 200,
-//                 display: 'flex',
-//                 alignItems: 'center',
-//                 justifyContent: 'center',
-//                 border: (theme) => `2px dashed ${theme.palette.primary.main}`,
-//                 padding: "20px",
-//                 textAlign: "center",
-//                 columnGap: '2em',
-//                 position: 'relative'
-//             }}><Typography variant='body1' fontWeight={500}>{analyzesForm.values.file.name}</Typography>
-//                 <Button variant="text" size='large' color="error" onClick={handleDeleteFile} startIcon={<DeleteIcon />}>
-//                     Sterge fisierul
-//                 </Button>
-//             </Box> :
-//                 <Box
-//                     {...getRootProps()}
-//                     sx={{
-//                         height: 200,
-//                         display: 'flex',
-//                         alignItems: 'center',
-//                         justifyContent: 'center',
-//                         border: (theme) => `2px dashed ${theme.palette.primary.main}`,
-//                         padding: "20px",
-//                         cursor: "pointer",
-//                         textAlign: "center",
-//                         borderRadius: '5px',
-//                         position: 'relative'
-//                     }}
-//                 >
-//                     <Box sx={{
-//                         top: '50%',
-//                         left: '50%',
-//                         position: 'absolute',
-//                         transform: 'translate(-50%, -50%)',
-//                     }}>
-//                         <BackupIcon sx={{ fontSize: '200px', width: 200, height: 200, color: '#90909050' }} />
-//                     </Box>
-//                     <input {...getInputProps()} id="file" name="file" type="file" />
-
-//                     <Typography>(Optional) Pentru o acuratete mai buna a viitoarelor analize,
-//                         <br /> te rugam sa adaugi si ultimele analize medicale in format PDF.</Typography>
-
-//                 </Box>
-//             }
-//         </Grid2>
-//         <Grid2 size={12}>
-//             <Box sx={{
-//                 display: 'flex',
-//                 justifyContent: 'center'
-//             }}>
-
-//                 <Button type="submit" sx={{ width: 400, display: "block", marign: '0 auto' }} variant="contained" size="large">Incarca analizele</Button>
-//             </Box>
-//         </Grid2>
-//     </Grid2>
-// </form>
