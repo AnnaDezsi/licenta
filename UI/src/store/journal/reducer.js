@@ -1,9 +1,15 @@
 import { SET_INITIAL_MEDS, RESET_JOURNAL, ADD_MED } from './action'
 
 const initialState = {
-    activeMeds: [],
-    retroMeds: [],
-    analyzes: []
+    medicamentatie: {
+        activeMeds: [],
+        retroMeds: [],
+        analyzes: []
+    },
+
+    analyzes: {
+        categoriiMedicale: []
+    }
 };
 
 const splitMedsBasedOnDate = (meds) => {
@@ -41,8 +47,11 @@ const journalReducer = (state = initialState, action) => {
             const { activeMeds, retroMeds } = splitMedsBasedOnDate([med])
             return {
                 ...state,
-                activeMeds: activeMeds.length ? [activeMeds[0], ...state.activeMeds] : state.activeMeds,
-                retroMeds: retroMeds.length ? [retroMeds[0], ...state.retroMeds] : state.retroMeds
+                medicamentatie: {
+                    ...state.medicamentatie,
+                    activeMeds: activeMeds.length ? [activeMeds[0], ...state.medicamentatie.activeMeds] : state.medicamentatie.activeMeds,
+                    retroMeds: retroMeds.length ? [retroMeds[0], ...state.medicamentatie.retroMeds] : state.medicamentatie.retroMeds
+                }
             }
 
         }

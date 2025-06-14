@@ -12,48 +12,9 @@ import api from '../services/axiosConfig';
 import { DateUtils } from '../utilities/DateUtils'
 import { AddAnalyzeForm } from '../components/AddAnalyzeForm/AddAnalyzeForm'
 import { useDispatch, useSelector } from 'react-redux';
-import { getJornalSelector } from '../store/journal/selectors';
+import { getMedicamentation } from '../store/journal/selectors';
 import { resetJournal, setInitialMeds } from '../store/journal/action';
 
-
-const mockupPastAnalyzes = [
-    {
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        status: "ACTIV",
-        data: {
-            file: 'Analize Regina Maria 2024 Ianuarie.pdf',
-            medicalAnalyzes: 'Valori hemoglobina - 200ug/l, valori lorem ipsum , sigfsajkn, dsjkan ,dsakmkmkm  dasiddas dasdasda,'
-        }
-    },
-    {
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        status: "RETRO",
-        data: {
-            file: 'Analize Regina Maria 2023 Aprilie.pdf',
-            medicalAnalyzes: 'Valori leucocitate marite - 200ug/l'
-        }
-    },
-    {
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        status: "RETRO",
-        data: {
-            file: 'Analize Regina Maria 2023 Aprilie.pdf',
-            medicalAnalyzes: 'Valori leucocitate marite - 200ug/l'
-        }
-    },
-    {
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        status: "RETRO",
-        data: {
-            file: 'Analize Regina Maria 2023 Aprilie.pdf',
-            medicalAnalyzes: 'Valori leucocitate marite - 200ug/l'
-        }
-    }
-]
 
 
 
@@ -64,7 +25,7 @@ export const JurnalMedical = () => {
     const dispatch = useDispatch();
 
 
-    const { activeMeds, retroMeds, analyzes } = useSelector(getJornalSelector);
+    const { activeMeds, retroMeds, analyzes } = useSelector(getMedicamentation);
 
 
 
