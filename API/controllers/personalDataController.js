@@ -159,13 +159,15 @@ export const getAllClients = async (req, res) => {
     const clients = await prisma.user.findMany({
       where: {
         role: 'CLIENT',
+        NOT: {
+          personalData: null
+        }
       },
       select: {
         id: true,
         email: true,
         personalData: {
           select: {
-            id: true,
             cnp: true,
             firstName: true,
             lastName: true,
@@ -173,15 +175,28 @@ export const getAllClients = async (req, res) => {
             phoneNumber: true,
             createdAt: true,
             updatedAt: true,
-            details: {
+          },
+        },
+        medicamentatie: {
+          select: {
+            name: true,
+            startDate: true,
+            endDate: true
+          }
+        },
+        analize: {
+          select: {
+            analyzeTitle: true,
+            testingDate: true,
+            assignedDoctor: {
               select: {
-                fumator: true,
-                sarcinaActiva: true,
-                diabet: true,
+                id: true,
+                email: true,
+                role: true,
               },
             },
           },
-        },
+        }
       },
     });
 
@@ -191,6 +206,99 @@ export const getAllClients = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching clients' });
   }
 };
+
+export const getClientById = async (req, res) => {
+  const { userId: paramUserId } = req.params;
+  const userId = parseInt(paramUserId);
+
+  try {
+    const client = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        personalData: {
+          select: {
+            cnp: true,
+            firstName: true,
+            lastName: true,
+            address: true,
+            phoneNumber: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        medicamentatie: {
+          select: {
+            id: true,
+            name: true,
+            startDate: true,
+            endDate: true,
+            medicamenteLinks: {
+              select: {
+                quantity: true,
+                medicament: {
+                  select: {
+                    name: true,
+                    description: true,
+                  }
+                }
+              }
+            }
+          }
+        },
+        analize: {
+          select: {
+            id: true,
+            analyzeTitle: true,
+            testingDate: true,
+            createdAt: true,
+            institution: true,
+            doctor: true,
+            notes: true,
+            file: true,
+
+            assignedDoctor: {
+              select: {
+                id: true,
+                email: true,
+                role: true,
+              },
+            },
+            categories: {
+              include: {
+                category: true,
+              },
+            },
+            results: {
+              include: {
+                parameter: {
+                  select: {
+                    name: true,
+                    unit: true,
+                    type: true,
+                    medicalCategoryId: true,
+                  },
+                },
+              },
+            },
+          },
+        }
+
+      },
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    res.status(200).json(client);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while fetching the client' });
+  }
+}
 
 
 export const getAllUsers = async (_, res) => {

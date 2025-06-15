@@ -13,6 +13,7 @@ import { Article } from '../pages/informatii/article';
 import { Pacienti } from '../pages/pacienti/pacienti';
 import { Users } from '../pages/users/users';
 import { User } from '../pages/users/user';
+import { Pacient } from '../pages/pacienti/pacient';
 
 export const USER_ROLE = {
   ADMIN: 'ADMIN',
@@ -70,7 +71,15 @@ export const protectedRoutes = [
     path: "/pacienti",
     name: "Pacienti",
     role: [USER_ROLE.DOCTOR],
-    element: <Pacienti />    
+    element: <Pacienti />,
+    children: [
+      {
+        path: ":clientId",
+        name: "Pacient",
+        role: [USER_ROLE.DOCTOR],
+        element: <Pacient/>
+      }
+    ]
   },
   {
     path: "/informatii",

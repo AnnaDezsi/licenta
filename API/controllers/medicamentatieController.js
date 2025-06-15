@@ -5,65 +5,79 @@ export const createMedicamentatie = async (req, res) => {
   const { userId } = req.user;
 
   try {
-    const alreadyRegistered = await prisma.medicamentatie.findFirst({
+    const existing = await prisma.medicamentatie.findFirst({
       where: {
         name,
-        userId: userId,
+        userId,
       },
     });
 
-    if (!!alreadyRegistered) {
+    if (existing) {
       return res.status(409).json({
-        error: 'Deja exista un jurnal de medicamentatie cu acest nume',
+        error: "Deja exista un jurnal de medicamentatie cu acest nume",
       });
     }
 
-    const medicamentatieEntries = await Promise.all(
-      medicines.map(async (medicine) => {
-        const medicament = await prisma.medicamente.findUnique({
-          where: { name: medicine.name },
+    const medicamentatie = await prisma.medicamentatie.create({
+      data: {
+        name: name || new Date(startDate).toDateString(),
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        quantity: 0,
+        userId,
+      },
+    });
+
+    for (const medicine of medicines) {
+      const medicament = await prisma.medicamente.findUnique({
+        where: { name: medicine.name },
+      });
+
+      if (!medicament) {
+        return res.status(404).json({
+          error: `Medicamentul '${medicine.name}' nu a fost gasit.`,
         });
+      }
 
-        if (!medicament) {
-          throw new Error(`Medicamentul cu numele ${medicine.medicine} nu a fost gasit.`);
-        }
+      await prisma.medicamentatie_Medicamente.create({
+        data: {
+          medicamentatieId: medicamentatie.id,
+          medicamentId: medicament.id,
+          quantity: medicine.quantity,
+        },
+      });
+    }
 
-        return await prisma.medicamentatie.create({
-          data: {
-            name: !name ? new Date(startDate).toDateString() : name,
-            startDate,
-            endDate,
-            medicamentId: medicament.id,
-            quantity: medicine.quantity,
-            userId,
-          },
-          include: {
-            medicament: true,
-          },
-        });
-      })
-    );
+    const linked = await prisma.medicamentatie_Medicamente.findMany({
+      where: { medicamentatieId: medicamentatie.id },
+      include: {
+        medicament: true,
+      },
+    });
 
-    const result = {
-      name: medicamentatieEntries[0].name,
-      startDate: medicamentatieEntries[0].startDate,
-      endDate: medicamentatieEntries[0].endDate,
-      medicines: medicamentatieEntries.map(med => ({
-        name: med.medicament.name,
-        quantity: med.quantity,
+    const response = {
+      id: medicamentatie.id,
+      name: medicamentatie.name,
+      startDate: medicamentatie.startDate,
+      endDate: medicamentatie.endDate,
+      medicines: linked.map(link => ({
+        name: link.medicament.name,
+        quantity: link.quantity,
       })),
     };
 
     res.status(201).json({
-      message: 'Medicamentatie adaugata cu succes!',
-      data: result,
+      message: "Medicamentatie adaugata cu succes!",
+      data: response,
     });
   } catch (error) {
+    console.error("Eroare la crearea medicamentatiei:", error);
     res.status(500).json({
-      error: 'Ooops! Ceva nu a functionat bine. Te rog incearca mai tarziu',
+      error: "Ooops! Ceva nu a functionat bine. Te rog incearca mai tarziu.",
     });
   }
 };
+
 
 
 
@@ -71,42 +85,39 @@ export const getMedicamentatie = async (req, res) => {
   const { userId } = req.user;
 
   try {
-    const medicamentatieEntries = await prisma.medicamentatie.findMany({
-      where: {
-        userId,
-      },
+    const medicamentaties = await prisma.medicamentatie.findMany({
+      where: { userId },
       include: {
-        medicament: true,
+        medicamenteLinks: {
+          include: {
+            medicament: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 
-    const groupedByName = medicamentatieEntries.reduce((acc, entry) => {
-      if (!acc[entry.name]) {
-        acc[entry.name] = {
-          name: entry.name,
-          startDate: entry.startDate,
-          endDate: entry.endDate,
-          medicines: [],
-        };
-      }
-
-      acc[entry.name].medicines.push({
-        name: entry.medicament.name,
-        quantity: entry.quantity,
-      });
-
-      return acc;
-    }, {});
-
-    const result = Object.values(groupedByName);
+    const result = medicamentaties.map(entry => ({
+      id: entry.id,
+      name: entry.name,
+      startDate: entry.startDate,
+      endDate: entry.endDate,
+      medicines: entry.medicamenteLinks.map(link => ({
+        name: link.medicament.name,
+        quantity: link.quantity,
+      })),
+    }));
 
     res.status(200).json({
-      message: 'Medicamentatie records retrieved successfully!',
+      message: "Medicamentatie records retrieved successfully!",
       data: result,
     });
   } catch (error) {
+    console.error("Eroare la obtinerea medicamentatiei:", error);
     res.status(500).json({
-      error: 'Ooops! Ceva nu a functionat bine. Te rog incearca mai tarziu',
+      error: "Ooops! Ceva nu a functionat bine. Te rog incearca mai tarziu.",
     });
   }
 };

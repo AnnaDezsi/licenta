@@ -1,4 +1,4 @@
-import { Box, Collapse, Grid2, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Box, Button, Collapse, Grid2, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { PageContainer } from '../../components/PageContainer/PageContainer'
 import { PageHeader } from '../../components/PageHeader/PageHeader'
@@ -6,12 +6,22 @@ import api from '../../services/axiosConfig';
 import { convertDateToLocalDate } from '../../utilities/convertors';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-
+import { Outlet, useMatches, useNavigate } from 'react-router-dom';
+import { splitMedsBasedOnDate } from '../../store/journal/reducer';
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 export const Pacienti = () => {
     const [clients, setClients] = useState([]);
     const [openRows, setOpenRows] = useState({});
 
+    const match = useMatches(['/pacienti', '/pacienti/:clientId']);
+    const isOnPacientPage = match.length !== 1;
+
+    const navigate = useNavigate();
+
+
     useEffect(() => {
+        if(isOnPacientPage) return;
+
         api('/personal/clients').then(res => {
             try {
                 const { data } = res;
@@ -21,10 +31,18 @@ export const Pacienti = () => {
                 console.error("Eroare setare pacienti")
             }
         })
-    }, [])
+    }, [isOnPacientPage])
 
     const toggleRow = (id) => {
         setOpenRows(prev => ({ ...prev, [id]: !prev[id] }));
+    }
+
+    const handleDetaliiClick = (clientId) => { 
+        navigate(`/pacienti/${clientId}`);
+    }
+
+    if (isOnPacientPage) {
+        return <Outlet />
     }
 
     return (
@@ -48,15 +66,15 @@ export const Pacienti = () => {
                                         <TableCell></TableCell>
                                         <TableCell>Nume pacient</TableCell>
                                         <TableCell align="right">Analize</TableCell>
-                                        <TableCell align="right">Jurnal activ</TableCell>
-                                        <TableCell align="right">Nr. jurnal retroactiv</TableCell>
+                                        <TableCell align="right">Medicamentatie activa</TableCell>
                                         <TableCell align="right">In asteptare</TableCell>
                                         <TableCell align="right">Actiuni</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {clients.map((client) => (
-                                        <React.Fragment key={client.id}>
+                                    {clients.map((client) => {
+                                        const { activeMeds } = splitMedsBasedOnDate(client.medicamentatie);
+                                        return <React.Fragment key={client.id}>
                                             <TableRow
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
@@ -72,10 +90,19 @@ export const Pacienti = () => {
                                                 <TableCell component="th" scope="row">
                                                     {client.personalData.firstName + " " + client.personalData.lastName}
                                                 </TableCell>
-                                                <TableCell align="right">2</TableCell>
-                                                <TableCell align="right">false</TableCell>
-                                                <TableCell align="right">3</TableCell>
-                                                <TableCell align="right">false</TableCell>
+                                                <TableCell align="right">{activeMeds.length}</TableCell>
+                                                <TableCell align="right">{activeMeds.length}</TableCell>
+                                                <TableCell align="right">{client.analize.assignedDoctor ? "Nu" : "Da"}</TableCell>
+                                                <TableCell align="right" >
+                                                    <Button 
+                                                        onClick={() => handleDetaliiClick(client.id)}
+                                                        variant='outlined' startIcon={
+                                                        <RemoveRedEyeIcon />
+                                                    }>
+                                                        Detalii
+                                                    </Button>
+
+                                                </TableCell>
                                             </TableRow>
                                             <TableRow>
                                                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -109,7 +136,7 @@ export const Pacienti = () => {
                                                 </TableCell>
                                             </TableRow>
                                         </React.Fragment>
-                                    ))}
+                                    })}
                                 </TableBody>
                             </Table>
                         </TableContainer>

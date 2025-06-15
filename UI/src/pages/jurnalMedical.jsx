@@ -12,8 +12,9 @@ import api from '../services/axiosConfig';
 import { DateUtils } from '../utilities/DateUtils'
 import { AddAnalyzeForm } from '../components/AddAnalyzeForm/AddAnalyzeForm'
 import { useDispatch, useSelector } from 'react-redux';
-import { getMedicamentation } from '../store/journal/selectors';
-import { resetJournal, setInitialMeds } from '../store/journal/action';
+import { getAnalyzes, getMedicamentation } from '../store/journal/selectors';
+import { resetJournal, setInitialAnalyzes, setInitialMeds } from '../store/journal/action';
+import { personalDataSelector } from '../store/auth/selectors';
 
 
 
@@ -26,7 +27,9 @@ export const JurnalMedical = () => {
 
 
     const { activeMeds, retroMeds } = useSelector(getMedicamentation);
+    const { submitted } = useSelector(getAnalyzes);
 
+    const userId = useSelector(personalDataSelector)?.userId
 
 
     useEffect(() => {
@@ -42,6 +45,14 @@ export const JurnalMedical = () => {
             })
             .catch(e => console.error(e))
     }, [])
+
+    useEffect(() => {
+        if (!userId) return;
+        api("/analize/" + userId)
+            .then(res => {
+                dispatch(setInitialAnalyzes(res.data))
+            })
+    }, [userId])
 
 
     useEffect(() => {
@@ -158,7 +169,7 @@ export const JurnalMedical = () => {
                         xs: 12,
                         xl: 4
                     }}>
-                        <AnalyzeBoard results={[]} title="Analizele mele" />
+                        <AnalyzeBoard submitted={submitted} title="Analizele mele" />
                     </Grid2>
                     <Grid2 size={{
                         xs: 12,
@@ -181,7 +192,9 @@ export const JurnalMedical = () => {
     )
 }
 
-const AnalyzeBoard = ({ results, title }) => {
+const AnalyzeBoard = ({ submitted, title }) => {
+    console.log(submitted);
+
     return (
         <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
             <Typography variant='h6' fontWeight={600}>{title}</Typography>
@@ -190,11 +203,11 @@ const AnalyzeBoard = ({ results, title }) => {
                 overflowY: 'scroll',
             }}>
 
-                {results.length ? results.map((pastAnalyzes, index) => (
+                {submitted.length ? submitted.map((analyze, index) => (
                     <ListItem key={uuidv4()} sx={{
                         border: theme => `1px solid ${theme.palette.primary.main}`, borderRadius: '5px',
                         backgroundColor: theme => `${theme.palette.primary.main}10`,
-                        marginBottom: index === pastAnalyzes.length - 1 ? 0 : '.4em',
+                        marginBottom: index === submitted.length - 1 ? 0 : '.4em',
                         transition: '.1s',
                         '&:hover': {
                             backgroundColor: theme => `${theme.palette.primary.main}20`,
@@ -204,12 +217,36 @@ const AnalyzeBoard = ({ results, title }) => {
                         <Box sx={{ width: 1 }}>
                             <Grid2 container>
                                 <Grid2 size={12}>
-                                    <Typography sx={{ my: 1 }}>#{pastAnalyzes.updatedAt.toDateString()}</Typography>
-                                    <Divider />
-                                    <Typography sx={{ my: 1 }}>{pastAnalyzes.data.medicalAnalyzes}</Typography>
+                                    <Grid2 container alignItems="center" direction="row" justifyContent="space-between">
+                                        <Grid2 size="grow">
+                                            <Typography sx={{ my: 1 }}>{analyze.analyzeTitle}</Typography>
+                                        </Grid2>
+                                        <Grid2 size="auto">
+                                            <Box sx={{
+                                                border: theme => `1px solid ${theme.palette.primary.main}70`,
+                                                borderRadius: '5px',
+                                                px: '0.4em',
+                                            }}>
+                                                <Typography variant='body2'>{analyze.checkedBy || "Nepreluat"}</Typography>
+                                            </Box>
+                                        </Grid2>
+                                    </Grid2>
                                 </Grid2>
 
-                            </Grid2></Box>
+                                <Grid2 size={12}>
+                                    <Divider />
+                                </Grid2>
+                                <Grid2 size={12}>
+                                    <Typography variant='body2' sx={{ my: 1 }}>Efectuare analize: {DateUtils.formatDate(analyze.testingDate)}</Typography>
+                                </Grid2>
+                                <Grid2 size={12}>
+                                    <Typography variant='body2' sx={{ my: 1 }}>Centru medical: {analyze.institution}</Typography>
+                                </Grid2>
+                                <Grid2 size={12}>
+                                    <Typography variant='caption' sx={{ my: 1 }}>Creat: {DateUtils.formatDate(analyze.createdAt)}</Typography>
+                                </Grid2>
+                            </Grid2>
+                        </Box>
                     </ListItem>
                 )) : <Box sx={{
                     width: 1,
@@ -257,7 +294,7 @@ const MedicBoard = ({ medicamentatie, title }) => {
                                                 <Typography sx={{ my: 1 }}>{DateUtils.formatDate(med.startDate)} - {DateUtils.formatDate(med.endDate)}</Typography>
                                             </Grid2>
                                             {new Date(med.startDate) > new Date() && <Grid2>
-                                                <Typography variant='body2' sx={{border: theme => `1px solid #00000030`, borderRadius: '5px', padding: '0 .2em'}}>Neinceput</Typography>
+                                                <Typography variant='body2' sx={{ border: theme => `1px solid #00000030`, borderRadius: '5px', padding: '0 .2em' }}>Neinceput</Typography>
                                             </Grid2>}
                                         </Grid2>
                                         <Typography sx={{ fontWeight: 700 }}>Medicamentatie</Typography>

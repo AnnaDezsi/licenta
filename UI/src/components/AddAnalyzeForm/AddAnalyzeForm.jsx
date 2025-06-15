@@ -64,8 +64,24 @@ export const AddAnalyzeForm = () => {
                 formData.append("categories", JSON.stringify(values.categories));
                 formData.append("file", values.file);
                 // Submit the form data to the server
+                api.post("/analize", formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                })
+                    .then(res => {
+                        // Optionally, you can reset the form or redirect the user
+                        // analyzesForm.resetForm();
+                        console.log(res);
+                    })
+                    .then(res => {
+                        setCurrentStep(prev => prev + 1);
 
-                setCurrentStep(prev => prev + 1);
+                    })
+                    .catch(err => {
+                        console.error("Error submitting analyze:", err);
+                    });
+
 
             } catch (error) {
                 console.error("Error submitting analyze form:", error);
@@ -397,7 +413,6 @@ export const AddAnalyzeForm = () => {
                             <textarea onChange={handleAnalyzeChange} style={{
                                 height: 200,
                                 width: '100%',
-                                fontSize: '1.2em',
                                 border: "2px solid #00B4D8",
                                 maxHeight: '100%',
                                 maxWidth: '100%',
