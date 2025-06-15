@@ -11,7 +11,7 @@ import { generatePersonalDetailsFromCNP } from "../utilities/generators"
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
-const displayBirthDate = (cnp) => {
+export const displayBirthDate = (cnp) => {
   try {
     const day = generatePersonalDetailsFromCNP(cnp).birthDate.getDay();
     const month = generatePersonalDetailsFromCNP(cnp).birthDate.getMonth();
@@ -26,7 +26,7 @@ const displayBirthDate = (cnp) => {
   }
 }
 
-const displayGender = (cnp) => {
+export const displayGender = (cnp) => {
   try {
     return generatePersonalDetailsFromCNP(cnp).gender;
   } catch (e) {
@@ -81,7 +81,6 @@ const DisplayPersonalData = () => {
   const [isCnpShown, setCnpShown] = useState(false);
 
 
-
   return (
     <Box>
       <Grid2 container>
@@ -117,7 +116,8 @@ const DisplayPersonalData = () => {
                       <Typography>CNP:</Typography>
                     </Grid2>
                     <Grid2 size={6}>
-                      <Grid2 container alignItems="center" ><Grid2 size="auto"><IconButton
+                      <Grid2 container alignItems="center" ><Grid2 size="auto">
+                      <IconButton
                         aria-label="expand row"
                         size="small"
                         color="primary"
