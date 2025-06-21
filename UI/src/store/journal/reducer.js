@@ -64,7 +64,6 @@ const journalReducer = (state = initialState, action) => {
         }
 
         case SET_ANALYZE_CATEGORIES: {
-            console.log(action.payload)
             return {
                 ...state,
                 analyzes: {

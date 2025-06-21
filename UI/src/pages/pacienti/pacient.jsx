@@ -40,7 +40,6 @@ export const Pacient = () => {
         })
         setMedicamentatie(data?.medicamentatie)
         setAnalize(data?.analize)
-        console.log(data);
       } catch (e) {
         console.error("Eroare setare pacienti")
       }
@@ -92,7 +91,6 @@ const Analize = ({ analize }) => {
     setCurrentAnalyze(prev => prev - 1);
   }
 
-  console.log(analyzeData)
   return (
     <Paper sx={{ background: "#fff", p: 2 }}>
       <Grid2 container direction="column" rowGap={1}>

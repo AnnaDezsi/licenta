@@ -193,8 +193,6 @@ export const JurnalMedical = () => {
 }
 
 const AnalyzeBoard = ({ submitted, title }) => {
-    console.log(submitted);
-
     return (
         <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
             <Typography variant='h6' fontWeight={600}>{title}</Typography>

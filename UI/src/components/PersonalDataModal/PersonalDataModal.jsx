@@ -45,7 +45,6 @@ export const PersonalDataModal = ({ isOpen = false, setModalOpen }) => {
         },
         validationSchema,
         onSubmit: async (values) => {
-            console.log(values)
             try {
                 const response = await api.post('/personal', values)
                 dispatch(setAuthPersonalData(response.data.data))
