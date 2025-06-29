@@ -44,7 +44,6 @@ export const getPersonalDataById = async (req, res) => {
 
 export const savePersonalDataById = async (req, res) => {
   const { userId: paramUserId } = req.params;
-  // console.log(paramUserId);
   const userId = parseInt(paramUserId);
 
   const personalData = await prisma.personal_Data.findUnique({
@@ -280,6 +279,7 @@ export const getClientById = async (req, res) => {
                 parameter: {
                   select: {
                     name: true,
+                    ro_l18n: true,
                     unit: true,
                     type: true,
                     medicalCategoryId: true,

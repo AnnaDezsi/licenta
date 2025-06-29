@@ -41,14 +41,15 @@ async function main() {
   }
 
   // Medical Categories
-  const categories = [
-    { name: "Cardiologie", description: "Deals with heart and circulatory system disorders" },
-    { name: "Endocrinologie", description: "Focuses on hormone-related diseases and metabolism" },
-    { name: "Neurologie", description: "Treats disorders of the nervous system" },
-    { name: "Boli infectioase", description: "Handles infectious diseases caused by pathogens" },
-    { name: "Reumatologie", description: "Specializes in joint, muscle, and autoimmune conditions" },
-    { name: "Dermatologie", description: "Manages skin, hair, and nail diseases" },
-  ];
+ const categories = [
+  { name: "Cardiologie", description: "Se ocupă cu afecțiunile inimii și ale sistemului circulator" },
+  { name: "Endocrinologie", description: "Se concentrează pe bolile hormonale și metabolism" },
+  { name: "Neurologie", description: "Tratează afecțiunile sistemului nervos" },
+  { name: "Boli infecțioase", description: "Gestionează bolile infecțioase cauzate de agenți patogeni" },
+  { name: "Reumatologie", description: "Este specializată în afecțiuni ale articulațiilor, mușchilor și boli autoimune" },
+  { name: "Dermatologie", description: "Se ocupă de bolile pielii, părului și unghiilor" }
+];
+
 
   for (const category of categories) {
     await prisma.medical_Category.upsert({
@@ -72,6 +73,7 @@ async function main() {
   const parameters = [
     {
       name: "Glucose",
+      ro_l18n: "Glicemie",
       unit: "mg/dL",
       type: "numeric",
       min_val: 70,
@@ -79,7 +81,8 @@ async function main() {
       medicalCategoryId: categoryMap["Endocrinologie"],
     },
     {
-      name: "Skin Thickness",
+      name: "SkinThickness",
+      ro_l18n: "Grosimea pliului cutanat",
       unit: "mm",
       type: "numeric",
       min_val: 0,
@@ -88,6 +91,7 @@ async function main() {
     },
     {
       name: "Insulin",
+      ro_l18n: "Insulină",
       unit: "µU/mL",
       type: "numeric",
       min_val: 5,
@@ -96,6 +100,7 @@ async function main() {
     },
     {
       name: "BMI",
+      ro_l18n: "Indice de masă corporală",
       unit: "kg/m^2",
       type: "float",
       min_val: 18.5,
@@ -103,7 +108,8 @@ async function main() {
       medicalCategoryId: categoryMap["Endocrinologie"],
     },
     {
-      name: "Diabetes Pedigree Function",
+      name: "DiabetesPedigreeFunction",
+      ro_l18n: "Funcție ereditară diabetic",
       unit: "N/A",
       type: "numeric",
       min_val: 0,
@@ -111,7 +117,8 @@ async function main() {
       medicalCategoryId: categoryMap["Endocrinologie"],
     },
     {
-      name: "Blood Pressure",
+      name: "BloodPressure",
+      ro_l18n: "Tensiune arterială",
       unit: "mmHg",
       type: "numeric",
       min_val: 80,

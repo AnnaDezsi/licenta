@@ -160,6 +160,7 @@ model Medical_Diagnosis {
 model Medical_Parameter {
   id                Int              @id @default(autoincrement())
   name              String           @db.VarChar(100)
+  ro_l18n           String?          @db.VarChar(100) 
   unit              String           @db.VarChar(20)
   type              String           @db.VarChar(50)
   min_val           Float?

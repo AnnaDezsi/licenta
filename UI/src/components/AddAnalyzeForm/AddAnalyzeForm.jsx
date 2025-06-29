@@ -92,8 +92,6 @@ export const AddAnalyzeForm = () => {
     const { categoriiMedicale } = useSelector(getAnalyzes);
     const [currentStep, setCurrentStep] = useState(0);
 
-
-
     const analyzesForm = useFormik({
         initialValues: {
             testingDate: null,
@@ -424,10 +422,9 @@ export const AddAnalyzeForm = () => {
                                                     const alreadySelectedParameters = analyzesForm.values.categories.find(cat => cat.name === category.name)?.parameters || [];
 
                                                     const remainingParameters = allPossibleParameters.filter(param => !alreadySelectedParameters.some(p => p.name === param.name));
-
-
-                                                    const possibleOptions = convertManyToLabelAndValue(allPossibleParameters, "name") || [];
-                                                    const parameterOptions = convertManyToLabelAndValue(remainingParameters, "name") || []
+                                                    
+                                                    const possibleOptions = allPossibleParameters.map(p => ({label: p.ro_l18n, value: p.name})) || [];
+                                                    const parameterOptions = remainingParameters.map(p => ({label: p.ro_l18n, value: p.name})) || []
 
                                                     const { min_val, max_val, unit } = allPossibleParameters.find(param => param.name === parameter.name) || { min_val: 0, max_val: 0, unit: "N/A" };
                                                     return (

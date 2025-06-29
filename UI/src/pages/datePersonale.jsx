@@ -14,18 +14,33 @@ import EditIcon from '@mui/icons-material/Edit';
 
 export const displayBirthDate = (cnp) => {
   try {
-    const day = generatePersonalDetailsFromCNP(cnp).birthDate.getDay();
-    const month = generatePersonalDetailsFromCNP(cnp).birthDate.getMonth();
-    const year = generatePersonalDetailsFromCNP(cnp).birthDate.getFullYear();
+    const { birthDate } = generatePersonalDetailsFromCNP(cnp);
 
-    const age = new Date().getFullYear() - year;
-    const months = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"]
-    return `${day} ${months[month - 1]} ${year} (${age})`
+    const day = birthDate.getDate(); 
+    const month = birthDate.getMonth(); 
+    const year = birthDate.getFullYear();
+
+    const today = new Date();
+    let age = today.getFullYear() - year;
+    if (
+      today.getMonth() < month ||
+      (today.getMonth() === month && today.getDate() < day)
+    ) {
+      age--;
+    }
+
+    const months = [
+      "Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie",
+      "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"
+    ];
+
+    return `${day} ${months[month]} ${year} (${age})`;
 
   } catch (e) {
-    return ""
+    return "";
   }
-}
+};
+
 
 export const displayGender = (cnp) => {
   try {
