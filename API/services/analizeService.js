@@ -76,7 +76,8 @@ export const createMedicalAnalysis = async (req, res) => {
             testingDate: analyze.testingDate,
             createdAt: analyze.createdAt,
             checkedBy: analyze?.assignedDoctor || "Nepreluat",
-            institution: analyze?.institution
+            institution: analyze?.institution,
+            createdAt: analyze.createdAt
         });
 
     } catch (error) {
@@ -122,3 +123,11 @@ export const getUserAnalyzesById = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
+export const startMLForAnalyzeId = (req, res) => {
+    const {analyzeId} = req.body;
+
+
+    
+}

@@ -95,6 +95,12 @@ const Analize = ({ analize }) => {
     setCurrentAnalyze(prev => prev - 1);
   }
 
+  const handleBeginAIAnalyze = (analyzeId) => {
+    console.log(analyzeId)
+  }
+
+  console.log(analize)
+
   return (
     <Paper sx={{ background: "#fff", p: 2 }}>
       <Grid2 container direction="column" rowGap={1}>
@@ -205,7 +211,7 @@ const Analize = ({ analize }) => {
             </Grid2>
 
             <Grid2 size={6}>
-              <Button variant="contained">Incepe analiza AI</Button>
+              <Button onClick={() => handleBeginAIAnalyze(analyzeData?.id)} variant="contained">Incepe analiza AI</Button>
             </Grid2>
             <Grid2 size={6}>
               <Typography>Adauga comentariu asupra analizelor</Typography>
