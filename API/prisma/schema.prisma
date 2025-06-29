@@ -53,6 +53,7 @@ model Personal_Data_Details {
   fumator        Boolean
   sarcinaActiva  Boolean
   diabet         Boolean
+  nrSarciniAnterioare Int      @default(0) 
   personalDataId Int           @unique
   personalData   Personal_Data @relation(fields: [personalDataId], references: [id], onDelete: Cascade, name: "PersonalDataToDetails")
 }

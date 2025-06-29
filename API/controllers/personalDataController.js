@@ -93,6 +93,7 @@ export const personalDataSetup = async (req, res) => {
             fumator: details?.fumator ?? false,
             sarcinaActiva: details?.sarcinaActiva ?? false,
             diabet: details?.diabet ?? false,
+            nrSarciniAnterioare: details?.nrSarciniAnterioare ?? 0
           }
         }
       },
@@ -134,11 +135,13 @@ export const updatePersonalDataById = async (req, res) => {
               fumator: details?.fumator ?? false,
               sarcinaActiva: details?.sarcinaActiva ?? false,
               diabet: details?.diabet ?? false,
+              nrSarciniAnterioare: details?.nrSarciniAnterioare ?? 0
             },
             update: {
               fumator: details?.fumator ?? false,
               sarcinaActiva: details?.sarcinaActiva ?? false,
               diabet: details?.diabet ?? false,
+              nrSarciniAnterioare: details?.nrSarciniAnterioare ?? 0
             }
           }
         }
@@ -227,6 +230,7 @@ export const getClientById = async (req, res) => {
             phoneNumber: true,
             createdAt: true,
             updatedAt: true,
+            details: true
           },
         },
         medicamentatie: {
@@ -328,7 +332,8 @@ export const getAllUsers = async (_, res) => {
               select: {
                 fumator: true,
                 sarcinaActiva: true,
-                diabet: true,
+                diabet: true,                
+                nrSarciniAnterioare: true
               }
             }
           },

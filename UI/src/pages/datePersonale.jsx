@@ -10,6 +10,7 @@ import { Box, Button, Checkbox, FormControlLabel, Grid2, IconButton, Paper, Typo
 import { generatePersonalDetailsFromCNP } from "../utilities/generators"
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import EditIcon from '@mui/icons-material/Edit';
 
 export const displayBirthDate = (cnp) => {
   try {
@@ -41,7 +42,7 @@ export const DatePersonale = () => {
   const dispatch = useDispatch();
   const datePersonale = useSelector(personalDataSelector);
 
-  
+
   useEffect(() => {
     if (!datePersonale?.userId) return;
     api.get('/personal/user/' + datePersonale?.userId).then(res =>
@@ -55,7 +56,7 @@ export const DatePersonale = () => {
     } catch (e) {
       throw new Error(e.message);
     }
-    finally{
+    finally {
       setEditingOpen(false)
     }
   };
@@ -63,15 +64,44 @@ export const DatePersonale = () => {
   const handleEditData = () => {
     setEditingOpen(!isEditingOpen)
   }
+  <Button onClick={handleEditData}>{isEditingOpen ? "Inapoi" : "Editeaza datele"}</Button>
 
 
   return (
-    <PageContainer paddingVertical={2}>
-      <PageHeader pageName="Date personale" caption="Revizuie datele tale personale" />
-      <Button onClick={handleEditData}>{isEditingOpen ? "Inapoi" : "Editeaza datele"}</Button>
+    <>
+      <Box sx={{ width: 1, backgroundColor: theme => `${theme.palette.primary.main}20`, padding: '2em 0' }}>
+
+        <PageContainer>
+          <Grid2 container alignItems="center" spacing={2}>
+            <Grid2 size="grow">
+              <PageHeader pageName="Date personale" caption="Revizuie datele tale personale" />
+
+            </Grid2>
+            <Grid2 size="auto">
+              <Button sx={{
+                backgroundColor: theme => theme.palette.primary.main,
+                color: 'white',
+                padding: '.8em 1.4em',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                columnGap: '1em'
+              }} onClick={() => handleEditData()}>
+                <EditIcon sx={{ fontSize: '34px' }} />
+                <Typography variant='h6' fontWeight={400}>
+                  {!isEditingOpen ? "Editeaza datele" : "Inapoi"}
+                </Typography>
+              </Button>
+            </Grid2>
+          </Grid2>
+
+        </PageContainer>
+      </Box>
+      <Box sx={{mt: 2}}>
       {isEditingOpen ? <PersonalDataForm datePersonale={datePersonale} handleSubmit={handleSubmit} /> : <DisplayPersonalData />
       }
-    </PageContainer>
+      </Box>
+    </>
   )
 
 }
@@ -87,7 +117,8 @@ const DisplayPersonalData = () => {
         <Grid2 size={{ xs: 12 }}>
           <Grid2 container columnGap={2}>
             <Grid2 size={{
-              xs: 4
+              xs: 12,
+              md: 7
             }}>
               <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
                 <Box sx={{ mb: 2 }}>
@@ -117,14 +148,14 @@ const DisplayPersonalData = () => {
                     </Grid2>
                     <Grid2 size={6}>
                       <Grid2 container alignItems="center" ><Grid2 size="auto">
-                      <IconButton
-                        aria-label="expand row"
-                        size="small"
-                        color="primary"
-                        onClick={() => setCnpShown(!isCnpShown)}
-                      >
-                        {isCnpShown ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
-                      </IconButton></Grid2>
+                        <IconButton
+                          aria-label="expand row"
+                          size="small"
+                          color="primary"
+                          onClick={() => setCnpShown(!isCnpShown)}
+                        >
+                          {isCnpShown ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                        </IconButton></Grid2>
                         <Grid2><Typography sx={{ fontWeight: 600 }}>{isCnpShown ? datePersonale?.cnp : "*".repeat(10) + datePersonale?.cnp.slice(11, 13)}</Typography></Grid2>
 
                       </Grid2>
@@ -175,42 +206,42 @@ const DisplayPersonalData = () => {
               </Paper>
             </Grid2>
             <Grid2 size={{
-              xs: 4
+              xs: 12,
+              md: "grow"
             }}>
               <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
-                <Typography>Detalii</Typography>
+                <Typography variant="body2">Detalii </Typography>
                 <Grid2 container>
-
-
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        disabled
-                        checked={Boolean(datePersonale?.details?.fumator)}
-                      />
-                    }
-                    label="Fumător"
-                  />
-
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        disabled
-                        checked={Boolean(datePersonale?.details?.sarcinaActiva)}
-                      />
-                    }
-                    label="Sarcină activă"
-                  />
-
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        disabled
-                        checked={Boolean(datePersonale?.details?.diabet)}
-                      />
-                    }
-                    label="Diabet"
-                  />
+                  <Grid2 size={4}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          disabled
+                          checked={Boolean(datePersonale?.details?.fumator)}
+                        />
+                      }
+                      label="Fumător"
+                    /></Grid2>
+                  <Grid2 size={4}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          disabled
+                          checked={Boolean(datePersonale?.details?.sarcinaActiva)}
+                        />
+                      }
+                      label="Sarcină activă"
+                    /></Grid2>
+                  <Grid2 size={4}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          disabled
+                          checked={Boolean(datePersonale?.details?.diabet)}
+                        />
+                      }
+                      label="Diabet"
+                    /></Grid2>
                 </Grid2>
               </Paper>
 

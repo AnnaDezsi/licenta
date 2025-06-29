@@ -16,9 +16,11 @@ export const authorizeDoctor = (req, res, next) => {
 
 export const authorizeUserOrAdmin = (req, res, next) => {
     const isRequiredIdSameAsLoggedId = req.user.userId === +req.params.userId
-    const iAdmin = req.user?.role === 'ADMIN';
+    const isAdmin = req.user?.role === 'ADMIN';
 
-    if (!isRequiredIdSameAsLoggedId || !iAdmin) {
+    console.log(isRequiredIdSameAsLoggedId , isAdmin)
+
+    if (!isRequiredIdSameAsLoggedId && !isAdmin) {
         return res.status(403).json({ error: 'Access denied' });
     }
 

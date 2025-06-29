@@ -14,10 +14,11 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { PrimarySelector } from '../PrimarySelector/PrimarySelector';
 import { convertManyToLabelAndValue } from '../../utilities/convertors';
-import { setAnalyzeCategories } from '../../store/journal/action';
+import { addAnalyze, setAnalyzeCategories } from '../../store/journal/action';
 import { useCallback } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import BackupIcon from '@mui/icons-material/Backup';
+import DoneIcon from '@mui/icons-material/Done';
 import * as Yup from "yup";
 
 const steps = [
@@ -32,7 +33,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 
-export const createAnalyzeValidationSchema = (categoriiMedicale = []) => {
+const createAnalyzeValidationSchema = (categoriiMedicale = []) => {
     return Yup.object().shape({
         testingDate: Yup.date()
             .required("Data analizei este obligatorie"),
@@ -115,31 +116,33 @@ export const AddAnalyzeForm = () => {
                 formData.append("notes", values.notes);
                 formData.append("categories", JSON.stringify(values.categories));
                 formData.append("file", values.file);
-                // Submit the form data to the server
-                // api.post("/analize", formData, {
-                //     headers: {
-                //         'Content-Type': 'multipart/form-data'
-                //     }
-                // })
-                //     .then(res => {
-                //         // Optionally, you can reset the form or redirect the user
-                //         // analyzesForm.resetForm();
-                //         console.log(res);
-                //     })
-                //     .then(res => {
-                //         setCurrentStep(prev => prev + 1);
 
-                //     })
-                //     .catch(err => {
-                //         console.error("Error submitting analyze:", err);
-                //     });
+                api.post("/analize", formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                })
+                    .then(res => {
+                        console.log("res", res)
+                        const payload = {
+                            analyzeTitle: res?.data?.analyzeTitle,
+                            assignedDoctor: (res?.data?.checkedBy === 'Nepreluat') && null,
+                            institution: res?.data?.institution,
+                            testingDate: res?.data?.testingDate,
+                            createdAt: res?.data?.createdAt
+                        }
+
+                        dispatch(addAnalyze(payload))
+                    })
+
+                    .catch(err => {
+                        console.error("Error submitting analyze:", err);
+                    });
 
 
             } catch (error) {
                 console.error("Error submitting analyze form:", error);
             }
-            // Prepare form data for submission
-
 
         }
     })
@@ -225,7 +228,7 @@ export const AddAnalyzeForm = () => {
             return true;
         }
 
-        if(currentStep === 2 && categoryError){
+        if (currentStep === 2 && categoryError) {
             return true;
         }
 
@@ -455,7 +458,7 @@ export const AddAnalyzeForm = () => {
                                                                     variant="outlined"
                                                                     InputProps={{
                                                                         sx: {
-                                                                           color: Boolean(analyzesForm.errors?.categories?.[index]?.parameters?.[paramIndex]?.value) && "red"
+                                                                            color: Boolean(analyzesForm.errors?.categories?.[index]?.parameters?.[paramIndex]?.value) && "red"
                                                                         },
                                                                     }}
                                                                     error={analyzesForm.touched?.categories?.[index]?.parameters?.[paramIndex]?.value && Boolean(analyzesForm.errors?.categories?.[index]?.parameters?.[paramIndex]?.value)}
@@ -478,7 +481,7 @@ export const AddAnalyzeForm = () => {
                                                     )
                                                 })}
                                             </Grid2>
-                                            {!Array.isArray(analyzesForm.errors.categories?.[index]?.parameters) && 
+                                            {!Array.isArray(analyzesForm.errors.categories?.[index]?.parameters) &&
                                                 <Typography color="error">{analyzesForm.errors.categories?.[index]?.parameters}</Typography>
                                             }
                                             {remainingParametersForCategoryIndex(category.name).length > 0 &&
@@ -566,12 +569,36 @@ export const AddAnalyzeForm = () => {
                         </Grid2>
                     </Grid2>
                 }
-                {currentStep === 4 && <Grid2 container spacing={2} size={{ maxWidth: 800, margin: '0 auto' }}>
+                {currentStep === 4 && <Grid2 container spacing={1} size={{ maxWidth: 800, margin: '0 auto' }}>
                     <Grid2 size={12}>
-                        <Typography variant='h6'>Analiza a fost adaugata cu succes!</Typography>
+                        <Box sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                        }}>
+                            <Box sx={{
+                                backgroundColor: theme => theme.palette.primary.main,
+                                height: '80px',
+                                width: '80px',
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                borderRadius: "99px"
+                            }}>
+
+                                <DoneIcon sx={{
+                                    fontSize: "50px",
+                                    color: "#fff"
+                                }} />
+
+                            </Box>
+                        </Box>
                     </Grid2>
-                    <Grid2 size={12}>
-                        <Typography variant='body1'>Pentru a vizualiza analiza, te rugam sa accesezi sectiunea "Jurnal" din meniul principal.</Typography>
+                    <Grid2 size={12} sx={{m: 0}}>
+                        <Typography sx={{m:0}} align='center' variant='h6'>Analiza a fost adaugata cu succes!</Typography>
+                    </Grid2>
+                    <Grid2 size={12} sx={{m: 0}}>
+                        <Typography  sx={{m:0}}  align="center" variant='body1'>Pentru a afla statusul analizei, te rugam sa vezi chenarul numit "Analizele mele" din partea de jos al paginii</Typography>
                     </Grid2>
                 </Grid2>}
                 {currentStep !== steps.length - 1 && <Grid2 direction="row" alignItems="center" justifyContent="center" container sx={{ mt: 2 }} columnGap={2}>

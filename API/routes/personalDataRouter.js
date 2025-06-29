@@ -11,7 +11,7 @@ router.get('/user/:userId', authenticateToken, getPersonalDataById)
 router.put('/user/:userId', authenticateToken, authorizeUserOrAdmin, savePersonalDataById)
 router.post('/', authenticateToken,  validatePersonalDataSetup, personalDataSetup);
 router.get('/clients', authenticateToken, authorizeDoctor, getAllClients)
-router.get('/clients/:userId', authenticateToken, authorizeUserOrAdmin, getClientById)
+router.get('/clients/:userId', authenticateToken, getClientById)
 router.get('/users', authenticateToken,authorizeAdmin, getAllUsers)
 
 export default router;

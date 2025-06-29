@@ -76,6 +76,7 @@ export const createMedicalAnalysis = async (req, res) => {
             testingDate: analyze.testingDate,
             createdAt: analyze.createdAt,
             checkedBy: analyze?.assignedDoctor || "Nepreluat",
+            institution: analyze?.institution
         });
 
     } catch (error) {

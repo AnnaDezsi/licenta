@@ -36,7 +36,8 @@ export const Pacient = () => {
         setPacientPersonalData({
           cnp: data?.personalData?.cnp || "",
           phoneNumber: data?.personalData?.phoneNumber || "",
-          address: data?.personalData?.address || ""
+          address: data?.personalData?.address || "",
+          details: data?.personalData?.details || null
         })
         setMedicamentatie(data?.medicamentatie)
         setAnalize(data?.analize)
@@ -61,10 +62,13 @@ export const Pacient = () => {
       </Box>
       <PageContainer>
         <Grid2 container spacing={2}>
-          <Grid2 size={4}>
+          <Grid2 size={6}>
             <PacientPersonalData personalData={pacientPersonalData} />
           </Grid2>
           <Grid2 size="grow">
+            <PacientPersonalDataDetails personalData={pacientPersonalData} />
+          </Grid2>
+          <Grid2 size={12}>
             <Medicamentatie medicamentatie={medicamentatie} />
           </Grid2>
           <Grid2 size={12}>
@@ -209,8 +213,8 @@ const Analize = ({ analize }) => {
             </Grid2>
 
             <Grid2 size={12}>
-              <Box sx={{ display: 'flex', justifyContent: "center", width: '100%'}}>
-                <Button size="large" sx={{width: '30%'}} variant="contained">Trimite analize</Button>
+              <Box sx={{ display: 'flex', justifyContent: "center", width: '100%' }}>
+                <Button size="large" sx={{ width: '30%' }} variant="contained">Trimite analize</Button>
               </Box>
             </Grid2>
           </Grid2>
@@ -318,7 +322,7 @@ const PacientPersonalData = ({ personalData }) => {
     <Paper sx={{ background: "#fff", p: 2 }}>
       <Grid2 container direction="column" rowGap={1}>
         <Grid2 size={12}>
-          <Typography>Detalii personale</Typography>
+          <Typography>Date personale</Typography>
         </Grid2>
         <Grid2 size={12}>
           <Divider />
@@ -419,6 +423,92 @@ const PacientPersonalData = ({ personalData }) => {
                   </Grid2>
                 </Grid2>
               </Grid2>
+
+            </Grid2>
+          </Box>
+        </Grid2>
+
+
+      </Grid2>
+    </Paper>
+  )
+}
+const PacientPersonalDataDetails = ({ personalData }) => {
+
+  return (
+    <Paper sx={{ background: "#fff", p: 2 }}>
+      <Grid2 container direction="column" rowGap={1}>
+        <Grid2 size={12}>
+          <Typography>Detalii </Typography>
+        </Grid2>
+        <Grid2 size={12}>
+          <Divider />
+        </Grid2>
+        <Grid2 size={12}>
+          <Box>
+            <Grid2 container>
+              <Grid2 size={12}>
+                <Grid2 container><Grid2 size={{
+                  xs: 12,
+                  md: 6
+                }}>
+                  <Typography>Fumator:</Typography>
+                </Grid2>
+                  <Grid2 size={{
+                    xs: 12,
+                    md: "auto"
+                  }}>
+                    <Typography sx={{ fontWeight: 600 }}>{personalData?.details?.fumator ? "Da" : "Nu"}</Typography>
+                  </Grid2>
+                </Grid2>
+              </Grid2>
+              {displayGender(personalData?.cnp) === "F" && <><Grid2 size={12}>
+                <Grid2 container><Grid2 size={{
+                  xs: 12,
+                  md: 6
+                }}>
+                  <Typography>Sarcina activa:</Typography>
+                </Grid2>
+                  <Grid2 size={{
+                    xs: 12,
+                    md: "auto"
+                  }}>
+                    <Typography sx={{ fontWeight: 600 }}>{personalData?.details?.sarcinaActiva ? "Da" : "Nu"}</Typography>
+                  </Grid2>
+                </Grid2>
+              </Grid2>
+              <Grid2 size={12}>
+                <Grid2 container><Grid2 size={{
+                  xs: 12,
+                  md: 6
+                }}>
+                  <Typography>Numar de sarcini</Typography>
+                </Grid2>
+                  <Grid2 size={{
+                    xs: 12,
+                    md: "auto"
+                  }}>
+                    <Typography sx={{ fontWeight: 600 }}>{personalData?.details?.nrSarciniAnterioare}</Typography>
+                  </Grid2>
+                </Grid2>
+              </Grid2></>}
+              
+              <Grid2 size={12}>
+                <Grid2 container><Grid2 size={{
+                  xs: 12,
+                  md: 6
+                }}>
+                  <Typography>Diabet</Typography>
+                </Grid2>
+                  <Grid2 size={{
+                    xs: 12,
+                    md: "auto"
+                  }}>
+                    <Typography sx={{ fontWeight: 600 }}>{personalData?.details?.diabet ? "Da" : "Nu"}</Typography>
+                  </Grid2>
+                </Grid2>
+              </Grid2>
+
             </Grid2>
           </Box>
         </Grid2>
