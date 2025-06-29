@@ -1,5 +1,5 @@
 import { useFormik } from "formik"
-import { Box, Button, Checkbox, FormControlLabel, Grid2, InputAdornment, List, ListItem, ListItemText, TextField, Typography } from "@mui/material"
+import { Box, Button, Checkbox, FormControlLabel, Grid2, InputAdornment, List, ListItem, ListItemText, Paper, TextField, Typography } from "@mui/material"
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import HomeIcon from '@mui/icons-material/Home';
@@ -7,6 +7,7 @@ import { useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid';
 import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
 import * as Yup from 'yup';
+import { displayGender } from "../../pages/datePersonale";
 
 const validationSchema = Yup.object({
   cnp: Yup.string()
@@ -35,7 +36,8 @@ const mappedFormValueToRomanian = {
   phoneNumber: 'Număr de telefon',
   'details.fumator': 'Fumător',
   'details.sarcinaActiva': 'Sarcină activă',
-  'details.diabet': 'Diabet'
+  'details.diabet': 'Diabet',
+  'details.nrSarciniAnterioare': 'Număr de sarcini anterioare'
 };
 
 
@@ -73,7 +75,8 @@ const initialValues = (datePersonale) => ({
   details: {
     fumator: datePersonale?.details?.fumator || false,
     sarcinaActiva: datePersonale?.details?.sarcinaActiva || false,
-    diabet: datePersonale?.details?.diabet || false
+    diabet: datePersonale?.details?.diabet || false,
+    nrSarciniAnterioare: datePersonale?.details?.nrSarciniAnterioare || 0,
   }
 })
 
@@ -105,7 +108,8 @@ export const PersonalDataForm = ({ datePersonale, handleSubmit }) => {
       "phoneNumber",
       "details.fumator",
       "details.sarcinaActiva",
-      "details.diabet"
+      "details.diabet",
+      "details.nrSarciniAnterioare"
     ]);
   }, [formik.values, datePersonale]);
 
@@ -149,129 +153,137 @@ export const PersonalDataForm = ({ datePersonale, handleSubmit }) => {
             xs: 12,
             md: 7
           }}>
-            <TextField
-              label="Nume de familie"
-              variant="outlined"
-              placeholder='Nume de familie'
-              fullWidth
-              margin="normal"
-              {...formik.getFieldProps('lastName')}
-              error={formik.touched.lastName && Boolean(formik.errors.lastName)}
-              helperText={formik.touched.lastName && formik.errors.lastName}
-            /> <TextField
-              label="Prenume"
-              variant="outlined"
-              placeholder='Prenume'
-              fullWidth
-              margin="normal"
-              {...formik.getFieldProps('firstName')}
-              error={formik.touched.firstName && Boolean(formik.errors.firstName)}
-              helperText={formik.touched.firstName && formik.errors.firstName}
-            /> <TextField
-              label="CNP"
-              variant="outlined"
-              placeholder='Cod Numeric Personal'
-              fullWidth
-              margin="normal"
-              {...formik.getFieldProps('cnp')}
-              error={formik.touched.cnp && Boolean(formik.errors.cnp)}
-              helperText={formik.touched.cnp && formik.errors.cnp}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <FingerprintIcon />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-            <TextField
-              label="Numar de telefon"
-              placeholder='0770100100'
-              type="text"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              {...formik.getFieldProps('phoneNumber')}
-              error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
-              helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LocalPhoneIcon />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-            <TextField
-              label="Adresa"
-              placeholder='Str. Lucian Blaga, nr. 4, Mun. Baia Mare, Judet Maramures'
-              type="text"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              {...formik.getFieldProps('address')}
-              error={formik.touched.address && Boolean(formik.errors.address)}
-              helperText={formik.touched.address && formik.errors.address}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <HomeIcon />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
+            <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
+
+              <TextField
+                label="Nume de familie"
+                variant="outlined"
+                placeholder='Nume de familie'
+                fullWidth
+                sx={{ mt: 0 }}
+                margin="normal"
+                {...formik.getFieldProps('lastName')}
+                error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+                helperText={formik.touched.lastName && formik.errors.lastName}
+              /> <TextField
+                label="Prenume"
+                variant="outlined"
+                placeholder='Prenume'
+                fullWidth
+                margin="normal"
+                {...formik.getFieldProps('firstName')}
+                error={formik.touched.firstName && Boolean(formik.errors.firstName)}
+                helperText={formik.touched.firstName && formik.errors.firstName}
+              /> <TextField
+                label="CNP"
+                variant="outlined"
+                placeholder='Cod Numeric Personal'
+                fullWidth
+                margin="normal"
+                {...formik.getFieldProps('cnp')}
+                error={formik.touched.cnp && Boolean(formik.errors.cnp)}
+                helperText={formik.touched.cnp && formik.errors.cnp}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <FingerprintIcon />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              <TextField
+                label="Numar de telefon"
+                placeholder='0770100100'
+                type="text"
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                {...formik.getFieldProps('phoneNumber')}
+                error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
+                helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocalPhoneIcon />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              <TextField
+                label="Adresa"
+                placeholder='Str. Lucian Blaga, nr. 4, Mun. Baia Mare, Judet Maramures'
+                type="text"
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                {...formik.getFieldProps('address')}
+                error={formik.touched.address && Boolean(formik.errors.address)}
+                helperText={formik.touched.address && formik.errors.address}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <HomeIcon />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              /></Paper>
           </Grid2>
-          <Grid2 sx={{ marginTop: 2 }} size={{
+          <Grid2 size={{
             xs: 12,
             md: "grow"
           }}>
-            <Box sx={{
-              border: theme => `1px solid #acb8be`,
-              borderRadius: '.2em',
-              padding: '.4em',
-            }}>
+            <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
 
               <Typography variant="body2">Detalii </Typography>
-              <Grid2 container>
+              <Grid2 container rowSpacing={2}>
+                <Grid2 size={4}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        {...formik.getFieldProps('details.fumator')}
+                        checked={Boolean(formik.values.details.fumator)}
+                      />
+                    }
+                    label="Fumător"
+                  />
+                </Grid2>
+                <Grid2 size={4}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        {...formik.getFieldProps('details.sarcinaActiva')}
+                        checked={Boolean(formik.values.details.sarcinaActiva)}
+                      />
+                    }
+                    label="Sarcină activă"
+                  />
+                </Grid2>
+                <Grid2 size={4}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        {...formik.getFieldProps('details.diabet')}
+                        checked={Boolean(formik.values.details.diabet)}
+                      />
+                    }
+                    label="Diabet"
+                  />
+                </Grid2>
+                {
+                  displayGender(formik.values.cnp) === "F" && <Grid2 size={12}>
+                    <TextField type="number"
+                      {...formik.getFieldProps('details.nrSarciniAnterioare')} label="Numar de sarcini anterioare" fullWidth />
+                  </Grid2>
+                }
 
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...formik.getFieldProps('details.fumator')}
-                      checked={Boolean(formik.values.details.fumator)}
-                    />
-                  }
-                  label="Fumător"
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...formik.getFieldProps('details.sarcinaActiva')}
-                      checked={Boolean(formik.values.details.sarcinaActiva)}
-                    />
-                  }
-                  label="Sarcină activă"
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...formik.getFieldProps('details.diabet')}
-                      checked={Boolean(formik.values.details.diabet)}
-                    />
-                  }
-                  label="Diabet"
-                />
               </Grid2>
-            </Box>
+            </Paper>
           </Grid2>
         </Grid2>
 

@@ -29,6 +29,9 @@ export const JurnalMedical = () => {
     const { activeMeds, retroMeds } = useSelector(getMedicamentation);
     const { submitted } = useSelector(getAnalyzes);
 
+    console.log("sub")
+    console.log(submitted)
+
     const userId = useSelector(personalDataSelector)?.userId
 
 
@@ -84,7 +87,7 @@ export const JurnalMedical = () => {
                             <Button sx={{
                                 backgroundColor: theme => theme.palette.primary.main,
                                 color: 'white',
-                                padding: '1.3em 2em',
+                                padding: '.8em 1.4em',
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
@@ -102,7 +105,7 @@ export const JurnalMedical = () => {
                             <Button sx={{
                                 backgroundColor: theme => theme.palette.primary.main,
                                 color: 'white',
-                                padding: '1.3em 2.0em',
+                                padding: '.8em 1.4em',
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
@@ -193,8 +196,6 @@ export const JurnalMedical = () => {
 }
 
 const AnalyzeBoard = ({ submitted, title }) => {
-    console.log(submitted);
-
     return (
         <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
             <Typography variant='h6' fontWeight={600}>{title}</Typography>

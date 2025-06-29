@@ -1,4 +1,4 @@
-import { FieldArray, Formik, FormikProvider, useFormik } from 'formik'
+import { FieldArray, FormikProvider, useFormik } from 'formik'
 import { Box, Button, Grid2, IconButton, Step, StepLabel, Stepper, TextField, Typography } from '@mui/material'
 import { useDropzone } from 'react-dropzone'
 import api from '../../services/axiosConfig';
@@ -14,12 +14,12 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { PrimarySelector } from '../PrimarySelector/PrimarySelector';
 import { convertManyToLabelAndValue } from '../../utilities/convertors';
-import { useMemo } from 'react';
-import { setAnalyzeCategories } from '../../store/journal/action';
+import { addAnalyze, setAnalyzeCategories } from '../../store/journal/action';
 import { useCallback } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import BackupIcon from '@mui/icons-material/Backup';
-
+import DoneIcon from '@mui/icons-material/Done';
+import * as Yup from "yup";
 
 const steps = [
     'Date initiale',
@@ -32,13 +32,65 @@ const steps = [
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+
+const createAnalyzeValidationSchema = (categoriiMedicale = []) => {
+    return Yup.object().shape({
+        testingDate: Yup.date()
+            .required("Data analizei este obligatorie"),
+        analyzeTitle: Yup.string()
+            .required("Titlul analizei este obligatoriu"),
+        institution: Yup.string()
+            .required("Instituția este obligatorie"),
+
+        doctor: Yup.string().nullable().trim(),
+        notes: Yup.string().nullable().trim(),
+        file: Yup.mixed().nullable(),
+
+        categories: Yup.array()
+            .of(
+                Yup.object().shape({
+                    name: Yup.string().required("Numele categoriei este obligatoriu"),
+
+                    parameters: Yup.array()
+                        .of(
+                            Yup.object().shape({
+                                name: Yup.string().required("Numele parametrului este obligatoriu"),
+                                value: Yup.number()
+                                    .typeError("Valoarea trebuie să fie un număr")
+                                    .test(
+                                        "in-range",
+                                        "Valoarea parametrului nu este în intervalul permis",
+                                        function (val) {
+                                            const { path, createError } = this;
+                                            const categoryName = this?.from?.[1]?.value?.name;
+                                            const paramName = this?.parent?.name;
+                                            const category = categoriiMedicale.find(cat => cat.name === categoryName);
+                                            const paramDef = category?.parameters?.find(p => p.name === paramName);
+
+                                            if (!paramDef || val == null) return true; // skip validation
+
+                                            const isValid = val >= paramDef.min_val && val <= paramDef.max_val;
+
+                                            return isValid || createError({
+                                                path,
+                                                message: `${paramDef.min_val} - ${paramDef.max_val}`
+                                            });
+                                        }
+                                    )
+                            })
+                        )
+                        .min(1, "Fiecare categorie trebuie să aibă cel puțin un parametru")
+                })
+            )
+            .min(1, "Trebuie să selectezi cel puțin o categorie")
+    });
+};
+
+
 export const AddAnalyzeForm = () => {
     const dispatch = useDispatch();
     const { categoriiMedicale } = useSelector(getAnalyzes);
-    const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
-
-
 
     const analyzesForm = useFormik({
         initialValues: {
@@ -50,10 +102,9 @@ export const AddAnalyzeForm = () => {
             file: null,
             notes: ""
         },
-
+        validationSchema: createAnalyzeValidationSchema(categoriiMedicale),
         onSubmit: async (values) => {
             try {
-                console.log(values);
                 // Prepare form data for submission
                 const formData = new FormData();
                 formData.append("testingDate", values.testingDate);
@@ -63,21 +114,25 @@ export const AddAnalyzeForm = () => {
                 formData.append("notes", values.notes);
                 formData.append("categories", JSON.stringify(values.categories));
                 formData.append("file", values.file);
-                // Submit the form data to the server
+
                 api.post("/analize", formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 })
                     .then(res => {
-                        // Optionally, you can reset the form or redirect the user
-                        // analyzesForm.resetForm();
-                        console.log(res);
-                    })
-                    .then(res => {
-                        setCurrentStep(prev => prev + 1);
+                        console.log("res", res)
+                        const payload = {
+                            analyzeTitle: res?.data?.analyzeTitle,
+                            assignedDoctor: (res?.data?.checkedBy === 'Nepreluat') && null,
+                            institution: res?.data?.institution,
+                            testingDate: res?.data?.testingDate,
+                            createdAt: res?.data?.createdAt
+                        }
 
+                        dispatch(addAnalyze(payload))
                     })
+
                     .catch(err => {
                         console.error("Error submitting analyze:", err);
                     });
@@ -86,8 +141,6 @@ export const AddAnalyzeForm = () => {
             } catch (error) {
                 console.error("Error submitting analyze form:", error);
             }
-            // Prepare form data for submission
-
 
         }
     })
@@ -107,7 +160,6 @@ export const AddAnalyzeForm = () => {
     }, [categoriiMedicale])
 
     useEffect(() => {
-        setIsCategoriesLoading(true);
         api("/analize/categorii")
             .then(res => {
 
@@ -124,9 +176,6 @@ export const AddAnalyzeForm = () => {
             .catch(err => {
                 console.error("Error fetching medical categories:", err);
             })
-            .finally(() => {
-                setIsCategoriesLoading(false);
-            });
     }, [])
 
 
@@ -157,9 +206,33 @@ export const AddAnalyzeForm = () => {
         setCurrentStep((prev) => prev - 1)
     }
 
-    const categoriesAsOptions = useMemo(() => {
-        return convertManyToLabelAndValue(categoriiMedicale, "name");
-    }, [categoriiMedicale]);
+    const handleSubmit = () => {
+        analyzesForm.handleSubmit();
+        setCurrentStep(prev => prev + 1);
+    }
+
+    const isNextButtonDisabled = () => {
+        const titleError = analyzesForm.errors?.analyzeTitle;
+        const testingDateError = analyzesForm.errors?.testingDate;
+        const institutionError = analyzesForm.errors?.institution;
+        const categoryError = analyzesForm.errors?.categories;
+
+
+        if (currentStep === 0 && (titleError || testingDateError)) {
+            return true;
+        }
+
+        if (currentStep === 1 && institutionError) {
+            return true;
+        }
+
+        if (currentStep === 2 && categoryError) {
+            return true;
+        }
+
+        return false
+    }
+
 
     const changeAnalyzeCategory = (newValue, actionMeta, categoryIndex) => {
         if (actionMeta.action !== 'select-option') return
@@ -239,7 +312,7 @@ export const AddAnalyzeForm = () => {
     }
 
     return (
-        <form onSubmit={analyzesForm.handleSubmit}>
+        <form>
             <Box sx={{ mb: 4, textAlign: 'center' }}>
                 <Stepper activeStep={currentStep} alternativeLabel>
                     {steps.map((label) => (
@@ -258,6 +331,9 @@ export const AddAnalyzeForm = () => {
                                 {...analyzesForm.getFieldProps("analyzeTitle")}
                                 label="Titlul analizei"
                                 variant="outlined"
+
+                                error={analyzesForm.touched.analyzeTitle && Boolean(analyzesForm.errors.analyzeTitle)}
+                                helperText={analyzesForm.touched.analyzeTitle && analyzesForm.errors.analyzeTitle}
                             />
                         </Grid2>
                         <Grid2 size={12}>
@@ -267,12 +343,14 @@ export const AddAnalyzeForm = () => {
                                     timezone="Europe/Bucharest"
                                     onChange={(value) => analyzesForm.setFieldValue("testingDate", value, true)}
                                     value={analyzesForm.values.testingDate}
-                                    // slotProps={{
-                                    //     textField: {
-                                    //         error: Boolean(medicalJournalForm.touched.startDate && medicalJournalForm.errors.startDate),
-                                    //         helperText: medicalJournalForm.touched.startDate && medicalJournalForm.errors.startDate,
-                                    //     },
-                                    // }}
+                                    slotProps={{
+                                        textField: {
+                                            error: Boolean(analyzesForm.touched.testingDate) && Boolean(analyzesForm.errors.testingDate),
+                                            helperText: Boolean(analyzesForm.touched.testingDate) && analyzesForm.errors.testingDate,
+                                            onBlur: (cv) => analyzesForm.setFieldTouched("testingDate", true, true),
+                                            name: 'testingDate'
+                                        },
+                                    }}
                                     sx={{ width: 1 }}
                                 />
                             </LocalizationProvider>
@@ -287,6 +365,8 @@ export const AddAnalyzeForm = () => {
                                 {...analyzesForm.getFieldProps("institution")}
                                 label="Institutia medicala"
                                 variant="outlined"
+                                error={analyzesForm.touched.institution && Boolean(analyzesForm.errors.institution)}
+                                helperText={analyzesForm.touched.institution && analyzesForm.errors.institution}
                             />
                         </Grid2>
                         <Grid2 size={12}>
@@ -303,6 +383,9 @@ export const AddAnalyzeForm = () => {
                     <Grid2 container spacing={2}>
                         <FormikProvider value={analyzesForm}>
                             <FieldArray name="categories" render={(arrayHelpers) => {
+                                const remainingParameters = categoriiMedicale.filter(category => !analyzesForm.values?.categories.some(selected => selected.name === category.name))
+                                const possibleCategories = convertManyToLabelAndValue(remainingParameters, "name") || [];
+                                const categoriesOptions = convertManyToLabelAndValue(analyzesForm.values?.categories, "name") || []
 
                                 return analyzesForm.values.categories.map((category, index) => (
                                     <Grid2 key={`category-${category.name}`} size={12} sx={{
@@ -317,8 +400,8 @@ export const AddAnalyzeForm = () => {
                                                 <Grid2 container alignItems="center" justifyContent="space-between">
                                                     <Grid2 size="grow">
                                                         <PrimarySelector
-                                                            options={categoriesAsOptions}
-                                                            value={categoriesAsOptions.find(cat => cat.value === category.name)}
+                                                            options={possibleCategories}
+                                                            value={categoriesOptions.find(cat => cat.value === category.name)}
                                                             onChange={(newValue, actionMeta) => changeAnalyzeCategory(newValue, actionMeta, index)}
                                                             label="Selecteaza o categorie medicala"
                                                             key={index}
@@ -339,10 +422,9 @@ export const AddAnalyzeForm = () => {
                                                     const alreadySelectedParameters = analyzesForm.values.categories.find(cat => cat.name === category.name)?.parameters || [];
 
                                                     const remainingParameters = allPossibleParameters.filter(param => !alreadySelectedParameters.some(p => p.name === param.name));
-
-
-                                                    const possibleOptions = convertManyToLabelAndValue(allPossibleParameters, "name") || [];
-                                                    const parameterOptions = convertManyToLabelAndValue(remainingParameters, "name") || []
+                                                    
+                                                    const possibleOptions = allPossibleParameters.map(p => ({label: p.ro_l18n, value: p.name})) || [];
+                                                    const parameterOptions = remainingParameters.map(p => ({label: p.ro_l18n, value: p.name})) || []
 
                                                     const { min_val, max_val, unit } = allPossibleParameters.find(param => param.name === parameter.name) || { min_val: 0, max_val: 0, unit: "N/A" };
                                                     return (
@@ -357,7 +439,10 @@ export const AddAnalyzeForm = () => {
                                                                 />
                                                             </Grid2>
                                                             <Grid2 size="grow">
-                                                                <Typography variant='body2' textAlign="right">
+                                                                <Typography variant='body2' textAlign="right" color={
+                                                                    (analyzesForm.touched?.categories?.[index]?.parameters?.[paramIndex]?.value && Boolean(analyzesForm.errors?.categories?.[index]?.parameters?.[paramIndex]?.value)) &&
+                                                                    "error"
+                                                                }>
                                                                     Min: {min_val} - Max: {max_val}
                                                                 </Typography>
                                                             </Grid2>
@@ -368,6 +453,12 @@ export const AddAnalyzeForm = () => {
                                                                     {...analyzesForm.getFieldProps(`categories[${index}].parameters[${paramIndex}].value`)}
                                                                     label="Valoare"
                                                                     variant="outlined"
+                                                                    InputProps={{
+                                                                        sx: {
+                                                                            color: Boolean(analyzesForm.errors?.categories?.[index]?.parameters?.[paramIndex]?.value) && "red"
+                                                                        },
+                                                                    }}
+                                                                    error={analyzesForm.touched?.categories?.[index]?.parameters?.[paramIndex]?.value && Boolean(analyzesForm.errors?.categories?.[index]?.parameters?.[paramIndex]?.value)}
                                                                 />
                                                             </Grid2>
 
@@ -387,6 +478,9 @@ export const AddAnalyzeForm = () => {
                                                     )
                                                 })}
                                             </Grid2>
+                                            {!Array.isArray(analyzesForm.errors.categories?.[index]?.parameters) &&
+                                                <Typography color="error">{analyzesForm.errors.categories?.[index]?.parameters}</Typography>
+                                            }
                                             {remainingParametersForCategoryIndex(category.name).length > 0 &&
                                                 <Grid2 size="grow">
                                                     <Button sx={{ m: 0, p: 0 }} onClick={() => handleAddParameterToCategory(category.name)}>Adauga parametru</Button>
@@ -472,20 +566,44 @@ export const AddAnalyzeForm = () => {
                         </Grid2>
                     </Grid2>
                 }
-                {currentStep === 4 && <Grid2 container spacing={2} size={{ maxWidth: 800, margin: '0 auto' }}>
+                {currentStep === 4 && <Grid2 container spacing={1} size={{ maxWidth: 800, margin: '0 auto' }}>
                     <Grid2 size={12}>
-                        <Typography variant='h6'>Analiza a fost adaugata cu succes!</Typography>
+                        <Box sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                        }}>
+                            <Box sx={{
+                                backgroundColor: theme => theme.palette.primary.main,
+                                height: '80px',
+                                width: '80px',
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                borderRadius: "99px"
+                            }}>
+
+                                <DoneIcon sx={{
+                                    fontSize: "50px",
+                                    color: "#fff"
+                                }} />
+
+                            </Box>
+                        </Box>
                     </Grid2>
-                    <Grid2 size={12}>
-                        <Typography variant='body1'>Pentru a vizualiza analiza, te rugam sa accesezi sectiunea "Jurnal" din meniul principal.</Typography>
+                    <Grid2 size={12} sx={{m: 0}}>
+                        <Typography sx={{m:0}} align='center' variant='h6'>Analiza a fost adaugata cu succes!</Typography>
+                    </Grid2>
+                    <Grid2 size={12} sx={{m: 0}}>
+                        <Typography  sx={{m:0}}  align="center" variant='body1'>Pentru a afla statusul analizei, te rugam sa vezi chenarul numit "Analizele mele" din partea de jos al paginii</Typography>
                     </Grid2>
                 </Grid2>}
                 {currentStep !== steps.length - 1 && <Grid2 direction="row" alignItems="center" justifyContent="center" container sx={{ mt: 2 }} columnGap={2}>
                     {currentStep !== 0 && <Button variant="contained" color='primary' onClick={handlePrevStep}>Inapoi</Button>}
                     {
                         currentStep < steps.length - 2 ?
-                            <Button variant="contained" color='primary' onClick={handleNextStep}>Inainte</Button> :
-                            <Button variant="contained" color='primary' type="submit">Finalizare</Button>
+                            <Button disabled={isNextButtonDisabled()} variant="contained" color='primary' onClick={handleNextStep}>Inainte</Button> :
+                            <Button variant="contained" color='primary' onClick={handleSubmit}>Finalizare</Button>
                     }
                 </Grid2>}
 

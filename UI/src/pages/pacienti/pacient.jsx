@@ -1,7 +1,7 @@
 import { useMatches } from "react-router-dom";
 import api from "../../services/axiosConfig"
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, Button, Collapse, Divider, Grid2, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { Box, Button, Checkbox, CircularProgress, Collapse, Divider, Grid2, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import { PageContainer } from "../../components/PageContainer/PageContainer";
 import { PageHeader } from "../../components/PageHeader/PageHeader";
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -13,6 +13,9 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import { useFormik } from "formik";
 
 export const Pacient = () => {
   const match = useMatches(['/pacienti', '/pacienti/:clientId']);
@@ -36,11 +39,11 @@ export const Pacient = () => {
         setPacientPersonalData({
           cnp: data?.personalData?.cnp || "",
           phoneNumber: data?.personalData?.phoneNumber || "",
-          address: data?.personalData?.address || ""
+          address: data?.personalData?.address || "",
+          details: data?.personalData?.details || null
         })
         setMedicamentatie(data?.medicamentatie)
-        setAnalize(data?.analize)
-        console.log(data);
+        setAnalize(data?.analize.map(a => ({ ...a, mlResults: [] })))
       } catch (e) {
         console.error("Eroare setare pacienti")
       }
@@ -62,14 +65,17 @@ export const Pacient = () => {
       </Box>
       <PageContainer>
         <Grid2 container spacing={2}>
-          <Grid2 size={4}>
+          <Grid2 size={6}>
             <PacientPersonalData personalData={pacientPersonalData} />
           </Grid2>
           <Grid2 size="grow">
+            <PacientPersonalDataDetails personalData={pacientPersonalData} />
+          </Grid2>
+          <Grid2 size={12}>
             <Medicamentatie medicamentatie={medicamentatie} />
           </Grid2>
           <Grid2 size={12}>
-            <Analize analize={analize} />
+            <Analize analize={analize} setAnalize={setAnalize} />
           </Grid2>
         </Grid2>
       </PageContainer>
@@ -77,10 +83,13 @@ export const Pacient = () => {
   )
 }
 
-const Analize = ({ analize }) => {
+const Analize = ({ analize, setAnalize }) => {
   const [currentAnalyze, setCurrentAnalyze] = useState(0);
+  const [isMLLoading, setMLLoading] = useState(false);
 
   const analyzeData = analize[currentAnalyze]
+
+
 
   const setNext = () => {
     if (currentAnalyze === analize.length - 1) return;
@@ -92,7 +101,38 @@ const Analize = ({ analize }) => {
     setCurrentAnalyze(prev => prev - 1);
   }
 
-  console.log(analyzeData)
+  const handleBeginMLAnalyze = (analyzeId) => {
+    setMLLoading(true);
+
+    api.post("/analize/mlstart", { analyzeId })
+      .then(res => {
+        const newResults = res.data?.results || [];
+
+        setAnalize(prevAnalize => {
+          const updated = [...prevAnalize];
+          updated[currentAnalyze] = {
+            ...updated[currentAnalyze],
+            mlResults: newResults
+          };
+          return updated;
+        });
+      })
+      .catch(error => {
+        console.error("Eroare ML:", error);
+        setAnalize(prevAnalize => {
+          const updated = [...prevAnalize];
+          updated[currentAnalyze] = {
+            ...updated[currentAnalyze],
+            mlResults: []
+          };
+          return updated;
+        });
+      })
+      .finally(() => setMLLoading(false));
+  };
+
+
+
   return (
     <Paper sx={{ background: "#fff", p: 2 }}>
       <Grid2 container direction="column" rowGap={1}>
@@ -162,7 +202,7 @@ const Analize = ({ analize }) => {
                           results?.map(result => <Grid2 size={12}>
                             <Grid2 container>
                               <Grid2 size={6}>
-                                <Typography variant="body2">{result.parameter.name}</Typography>
+                                <Typography variant="body2">{result.parameter.ro_l18n}</Typography>
                               </Grid2>
 
                               <Grid2 size={6}>
@@ -199,26 +239,100 @@ const Analize = ({ analize }) => {
               <Divider />
             </Grid2>
             <Grid2 size={12}>
-              <Typography variant="h6">Analiza doctorului</Typography>
-            </Grid2>
+                <Typography variant="h6">Analiza doctorului</Typography>
+                {!analyzeData?.mlResults?.length ? <Box sx={{ width: '100%', height: '300px', display: 'flex', alignItems: "center", justifyContent: 'center' }}>
+                  {isMLLoading ? <CircularProgress size={50} /> : <Button sx={{ py: '1em', px: '2em' }} onClick={() => handleBeginMLAnalyze(analyzeData?.id)} variant="contained">Incepe analiza AI</Button>}
 
-            <Grid2 size={6}>
-              <Button variant="contained">Incepe analiza AI</Button>
-            </Grid2>
-            <Grid2 size={6}>
-              <Typography>Adauga comentariu asupra analizelor</Typography>
-              <textarea style={{ maxWidth: '100%', width: '100%', minHeight: '200px' }} />
-            </Grid2>
-
-            <Grid2 size={12}>
-              <Box sx={{ display: 'flex', justifyContent: "center", width: '100%'}}>
-                <Button size="large" sx={{width: '30%'}} variant="contained">Trimite analize</Button>
-              </Box>
+                </Box> : <ResultForm mlResults={analyzeData?.mlResults || []} />}
             </Grid2>
           </Grid2>
         </Grid2>
       </Grid2>
     </Paper>
+  )
+}
+
+const ResultForm = ({ mlResults }) => {
+  const formik = useFormik({
+    initialValues: {
+      doctorNotes: '',
+      mlResults: mlResults.map(r => ({
+        disease: r.disease,
+        prediction: r.prediction,
+        include: true
+      }))
+    },
+    onSubmit: (values) => {
+      const selectedDiseases = values.mlResults.filter(r => r.include);
+      const payload = {
+        doctorNotes: values.doctorNotes,
+        selectedDiseases
+      };
+      console.log("Payload to submit:", payload);
+    }
+  });
+
+  const { values, handleSubmit, setFieldValue, handleChange } = formik;
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Grid2 container spacing={2}>
+        <Grid2 size="grow">
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Boala</TableCell>
+                  <TableCell align="right">Predictie</TableCell>
+                  <TableCell align="right">Include in raport</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {values.mlResults.map((row, index) => (
+                  <TableRow key={row.disease}>
+                    <TableCell>{row.disease}</TableCell>
+                    <TableCell align="right">
+                      {row.prediction ? <CheckIcon /> : <CloseIcon />}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Checkbox
+                        checked={row.include}
+                        onChange={(e) => {
+                          const updated = [...values.mlResults];
+                          updated[index].include = e.target.checked;
+                          setFieldValue('mlResults', updated);
+                        }}
+                        sx={{ '& .MuiSvgIcon-root': { fontSize: 28 } }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid2>
+
+        <Grid2 size="grow">
+          <TextField
+            name="doctorNotes"
+            value={values.doctorNotes}
+            onChange={handleChange}
+            fullWidth
+            multiline
+            minRows={8}
+            placeholder="Completarile doctorului"
+            variant="outlined"
+          />
+        </Grid2>
+
+        <Grid2 size={12} sx={{alignItems: 'center', justifyContent:"center", display: "flex"}}>
+          <Button size="large" type="submit" variant="contained">
+            Trimite analiza pacientului
+          </Button>
+        </Grid2>
+      </Grid2>
+    </form>
+
   )
 }
 
@@ -312,7 +426,6 @@ const Medicamentatie = ({ medicamentatie }) => {
 
   )
 }
-
 const PacientPersonalData = ({ personalData }) => {
   const [isCnpShown, setCnpShown] = useState(false);
 
@@ -320,7 +433,7 @@ const PacientPersonalData = ({ personalData }) => {
     <Paper sx={{ background: "#fff", p: 2 }}>
       <Grid2 container direction="column" rowGap={1}>
         <Grid2 size={12}>
-          <Typography>Detalii personale</Typography>
+          <Typography>Date personale</Typography>
         </Grid2>
         <Grid2 size={12}>
           <Divider />
@@ -421,6 +534,92 @@ const PacientPersonalData = ({ personalData }) => {
                   </Grid2>
                 </Grid2>
               </Grid2>
+
+            </Grid2>
+          </Box>
+        </Grid2>
+
+
+      </Grid2>
+    </Paper>
+  )
+}
+const PacientPersonalDataDetails = ({ personalData }) => {
+
+  return (
+    <Paper sx={{ background: "#fff", p: 2 }}>
+      <Grid2 container direction="column" rowGap={1}>
+        <Grid2 size={12}>
+          <Typography>Detalii </Typography>
+        </Grid2>
+        <Grid2 size={12}>
+          <Divider />
+        </Grid2>
+        <Grid2 size={12}>
+          <Box>
+            <Grid2 container>
+              <Grid2 size={12}>
+                <Grid2 container><Grid2 size={{
+                  xs: 12,
+                  md: 6
+                }}>
+                  <Typography>Fumator:</Typography>
+                </Grid2>
+                  <Grid2 size={{
+                    xs: 12,
+                    md: "auto"
+                  }}>
+                    <Typography sx={{ fontWeight: 600 }}>{personalData?.details?.fumator ? "Da" : "Nu"}</Typography>
+                  </Grid2>
+                </Grid2>
+              </Grid2>
+              {displayGender(personalData?.cnp) === "F" && <><Grid2 size={12}>
+                <Grid2 container><Grid2 size={{
+                  xs: 12,
+                  md: 6
+                }}>
+                  <Typography>Sarcina activa:</Typography>
+                </Grid2>
+                  <Grid2 size={{
+                    xs: 12,
+                    md: "auto"
+                  }}>
+                    <Typography sx={{ fontWeight: 600 }}>{personalData?.details?.sarcinaActiva ? "Da" : "Nu"}</Typography>
+                  </Grid2>
+                </Grid2>
+              </Grid2>
+                <Grid2 size={12}>
+                  <Grid2 container><Grid2 size={{
+                    xs: 12,
+                    md: 6
+                  }}>
+                    <Typography>Numar de sarcini</Typography>
+                  </Grid2>
+                    <Grid2 size={{
+                      xs: 12,
+                      md: "auto"
+                    }}>
+                      <Typography sx={{ fontWeight: 600 }}>{personalData?.details?.nrSarciniAnterioare}</Typography>
+                    </Grid2>
+                  </Grid2>
+                </Grid2></>}
+
+              <Grid2 size={12}>
+                <Grid2 container><Grid2 size={{
+                  xs: 12,
+                  md: 6
+                }}>
+                  <Typography>Diabet</Typography>
+                </Grid2>
+                  <Grid2 size={{
+                    xs: 12,
+                    md: "auto"
+                  }}>
+                    <Typography sx={{ fontWeight: 600 }}>{personalData?.details?.diabet ? "Da" : "Nu"}</Typography>
+                  </Grid2>
+                </Grid2>
+              </Grid2>
+
             </Grid2>
           </Box>
         </Grid2>

@@ -44,7 +44,6 @@ export const getPersonalDataById = async (req, res) => {
 
 export const savePersonalDataById = async (req, res) => {
   const { userId: paramUserId } = req.params;
-  // console.log(paramUserId);
   const userId = parseInt(paramUserId);
 
   const personalData = await prisma.personal_Data.findUnique({
@@ -93,6 +92,7 @@ export const personalDataSetup = async (req, res) => {
             fumator: details?.fumator ?? false,
             sarcinaActiva: details?.sarcinaActiva ?? false,
             diabet: details?.diabet ?? false,
+            nrSarciniAnterioare: details?.nrSarciniAnterioare ?? 0
           }
         }
       },
@@ -120,7 +120,7 @@ export const updatePersonalDataById = async (req, res) => {
 
   try {
     const userId = parseInt(paramUserId);
-    await prisma.personal_Data.update({
+    const data = await prisma.personal_Data.update({
       where: { userId },
       data: {
         cnp,
@@ -134,18 +134,23 @@ export const updatePersonalDataById = async (req, res) => {
               fumator: details?.fumator ?? false,
               sarcinaActiva: details?.sarcinaActiva ?? false,
               diabet: details?.diabet ?? false,
+              nrSarciniAnterioare: details?.nrSarciniAnterioare ?? 0
             },
             update: {
               fumator: details?.fumator ?? false,
               sarcinaActiva: details?.sarcinaActiva ?? false,
               diabet: details?.diabet ?? false,
+              nrSarciniAnterioare: details?.nrSarciniAnterioare ?? 0
             }
           }
         }
       },
+      include:{
+        details: true
+      }
     });
 
-    res.status(200).json({ message: 'Datele au fost editate cu succes' });
+    res.status(200).json({data});
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: 'Eroare interna' });
@@ -227,6 +232,7 @@ export const getClientById = async (req, res) => {
             phoneNumber: true,
             createdAt: true,
             updatedAt: true,
+            details: true
           },
         },
         medicamentatie: {
@@ -276,6 +282,7 @@ export const getClientById = async (req, res) => {
                 parameter: {
                   select: {
                     name: true,
+                    ro_l18n: true,
                     unit: true,
                     type: true,
                     medicalCategoryId: true,
@@ -328,7 +335,8 @@ export const getAllUsers = async (_, res) => {
               select: {
                 fumator: true,
                 sarcinaActiva: true,
-                diabet: true,
+                diabet: true,                
+                nrSarciniAnterioare: true
               }
             }
           },

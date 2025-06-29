@@ -1,4 +1,6 @@
 import { categoriesWithParameters } from "../controllers/medicalCategoriesController.js";
+import { Utils } from "../utils/utils.js";
+import axios from 'axios'
 
 export const getMedicalCategoriesAndParameters = async (req, res) => {
     try {
@@ -76,6 +78,8 @@ export const createMedicalAnalysis = async (req, res) => {
             testingDate: analyze.testingDate,
             createdAt: analyze.createdAt,
             checkedBy: analyze?.assignedDoctor || "Nepreluat",
+            institution: analyze?.institution,
+            createdAt: analyze.createdAt
         });
 
     } catch (error) {
@@ -121,3 +125,59 @@ export const getUserAnalyzesById = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
+export const startMLForAnalyzeId = async (req, res) => {
+    const { analyzeId } = req.body;
+
+    try {
+        const results = await prisma.medical_Analyze_Result.findMany({
+            where: {
+                analyzeId
+            },
+            include: {
+                parameter: true,
+                analyze: {
+                    include: {
+                        user: {
+                            include: {
+                                personalData: {
+                                    include: {
+                                        details: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+
+        const cnp = results[0].analyze.user.personalData?.cnp;
+        const pregnancies = results[0].analyze.user.personalData?.details?.nrSarciniAnterioare;
+
+
+        const payload = {};
+
+        for (const result of results) {
+            const name = result.parameter.name;
+            payload[name] = result.value;
+        }
+
+        payload['Age'] = Utils.getAgeFromCNP(cnp);
+        payload['Pregnancies'] = pregnancies;
+
+        const responseFromML = await axios.post(process.env.ML_APP_PATH + "/predict", {
+            parameters: payload
+        });
+
+        res.status(200).json(responseFromML.data)
+
+    } catch (error) {
+        console.error('Error encountered by ML', error);
+        res.status(500).json({ error: 'Internal server error' })
+    }
+
+
+}
