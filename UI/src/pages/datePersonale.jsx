@@ -66,8 +66,8 @@ export const DatePersonale = () => {
 
   const handleSubmit = async (values) => {
     try {
-      await api.put('/personal/user/' + datePersonale?.userId, values)
-      dispatch(setAuthPersonalData(values));
+      const {data} = await api.put('/personal/user/' + datePersonale?.userId, values)
+      dispatch(setAuthPersonalData(data.data));
     } catch (e) {
       throw new Error(e.message);
     }
@@ -257,7 +257,7 @@ const DisplayPersonalData = () => {
                       }
                       label="Diabet"
                     /></Grid2>
-                  <Grid2 size={4}>
+                  <Grid2 size={12} sx={{mt: 2}}>
                    <Typography>Nr. sarcini anterioare: {datePersonale?.details?.nrSarciniAnterioare}</Typography></Grid2>
                 </Grid2>
               </Paper>

@@ -120,7 +120,7 @@ export const updatePersonalDataById = async (req, res) => {
 
   try {
     const userId = parseInt(paramUserId);
-    await prisma.personal_Data.update({
+    const data = await prisma.personal_Data.update({
       where: { userId },
       data: {
         cnp,
@@ -145,9 +145,12 @@ export const updatePersonalDataById = async (req, res) => {
           }
         }
       },
+      include:{
+        details: true
+      }
     });
 
-    res.status(200).json({ message: 'Datele au fost editate cu succes' });
+    res.status(200).json({data});
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ error: 'Eroare interna' });

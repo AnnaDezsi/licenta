@@ -90,9 +90,9 @@ export const Pacienti = () => {
                                                 <TableCell component="th" scope="row">
                                                     {client.personalData.firstName + " " + client.personalData.lastName}
                                                 </TableCell>
+                                                <TableCell align="right">{client?.analize.length || 0}</TableCell>
                                                 <TableCell align="right">{activeMeds.length}</TableCell>
-                                                <TableCell align="right">{activeMeds.length}</TableCell>
-                                                <TableCell align="right">{client.analize.assignedDoctor ? "Nu" : "Da"}</TableCell>
+                                                <TableCell align="right">{client?.analize?.assignedDoctor ? "Nu" : "Da"}</TableCell>
                                                 <TableCell align="right" >
                                                     <Button 
                                                         onClick={() => handleDetaliiClick(client.id)}
