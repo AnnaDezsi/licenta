@@ -257,6 +257,8 @@ const DisplayPersonalData = () => {
                       }
                       label="Diabet"
                     /></Grid2>
+                  <Grid2 size={4}>
+                   <Typography>Nr. sarcini anterioare: {datePersonale?.details?.nrSarciniAnterioare}</Typography></Grid2>
                 </Grid2>
               </Paper>
 
