@@ -1,4 +1,5 @@
 import prisma from "../config/databaseInstance.js";
+import { getS3FileStream } from "../services/blobService.js";
 
 export const getAllNameAndDescription = async (_, res) => {
     try {
@@ -43,3 +44,5 @@ export const getByName = async (req, res) => {
         res.status(500).json({ error: 'Eroare internă' });
     }
 };
+
+

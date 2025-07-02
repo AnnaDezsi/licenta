@@ -57,9 +57,10 @@ const theme = createTheme({
     MuiPaper: {
         styleOverrides: {
           root: {
+            backgroundColor: "#fff",
             borderRadius: 8,
-            border: '1px solid #33333330',
-            boxShadow: '0px 4px 9px #00B4D820', // Custom drop shadow for Paper
+            border: '1px solid #33333315',
+            boxShadow: '-6px 6px 8px 0 #00000010', // Custom drop shadow for Paper
           },
         },
       },

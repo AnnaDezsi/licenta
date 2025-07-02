@@ -235,64 +235,6 @@ export const getClientById = async (req, res) => {
             details: true
           },
         },
-        medicamentatie: {
-          select: {
-            id: true,
-            name: true,
-            startDate: true,
-            endDate: true,
-            medicamenteLinks: {
-              select: {
-                quantity: true,
-                medicament: {
-                  select: {
-                    name: true,
-                    description: true,
-                  }
-                }
-              }
-            }
-          }
-        },
-        analize: {
-          select: {
-            id: true,
-            analyzeTitle: true,
-            testingDate: true,
-            createdAt: true,
-            institution: true,
-            doctor: true,
-            notes: true,
-            file: true,
-
-            assignedDoctor: {
-              select: {
-                id: true,
-                email: true,
-                role: true,
-              },
-            },
-            categories: {
-              include: {
-                category: true,
-              },
-            },
-            results: {
-              include: {
-                parameter: {
-                  select: {
-                    name: true,
-                    ro_l18n: true,
-                    unit: true,
-                    type: true,
-                    medicalCategoryId: true,
-                  },
-                },
-              },
-            },
-          },
-        }
-
       },
     });
 

@@ -5,7 +5,7 @@ import { createMedicamentatie, getMedicamentatie } from '../controllers/medicame
 
 const router = express.Router();
 router.post('/', authenticateToken, createMedicamentatie)
-router.get('/', authenticateToken, getMedicamentatie)
+router.get('/:userId', authenticateToken, getMedicamentatie)
 
 
 export default router;

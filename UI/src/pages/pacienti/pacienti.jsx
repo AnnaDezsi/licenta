@@ -92,7 +92,7 @@ export const Pacienti = () => {
                                                 </TableCell>
                                                 <TableCell align="right">{client?.analize.length || 0}</TableCell>
                                                 <TableCell align="right">{activeMeds.length}</TableCell>
-                                                <TableCell align="right">{client?.analize?.assignedDoctor ? "Nu" : "Da"}</TableCell>
+                                                <TableCell align="right">{client?.analize.length ? "Da" : "Nu"}</TableCell>
                                                 <TableCell align="right" >
                                                     <Button 
                                                         onClick={() => handleDetaliiClick(client.id)}

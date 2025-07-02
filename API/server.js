@@ -5,9 +5,9 @@ import { logRequest } from './config/index.js';
 import checkDbConnection from './utils/runningDatabase.js';
 import cors from 'cors';
 import userRouter from './routes/userRouter.js';
+import fileRouter from './routes/fileRouter.js';
 import personalDataRouter from './routes/personalDataRouter.js';
 import articleRouter from './routes/articleRouter.js';
-import fileRouter from './routes/fileRouter.js';
 import medicamenteRouter from './routes/medicamenteRouter.js';
 import medicamentatieRouter from './routes/medicamentatieRouter.js';
 import analizeRouter from './routes/analizeRouter.js';
@@ -22,9 +22,9 @@ app.use(cors())
 
 
 app.use('/api/auth', userRouter);
+app.use('/api/file', fileRouter);
 app.use('/api/personal', personalDataRouter);
 app.use('/api/article', articleRouter);
-app.use('/api/file', fileRouter);
 app.use("/api/medicamente", medicamenteRouter);
 app.use("/api/medicamentatie", medicamentatieRouter);
 app.use("/api/analize/", analizeRouter);

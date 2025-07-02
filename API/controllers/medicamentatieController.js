@@ -78,42 +78,39 @@ export const createMedicamentatie = async (req, res) => {
   }
 };
 
-
-
-
 export const getMedicamentatie = async (req, res) => {
-  const { userId } = req.user;
+  const { userId: paramUserId } = req.params;
+  const userId = parseInt(paramUserId);
+
 
   try {
     const medicamentaties = await prisma.medicamentatie.findMany({
       where: { userId },
-      include: {
+      select: {
+        id: true,
+        createdAt: true,
+        name: true,
+        startDate: true,
+        endDate: true,
         medicamenteLinks: {
-          include: {
-            medicament: true,
-          },
-        },
+          select: {
+            quantity: true,
+            medicament: {
+              select: {
+                name: true,
+                description: true
+              }
+            }
+          }
+        }
       },
       orderBy: {
-        createdAt: "desc",
-      },
+        createdAt: 'desc',
+      }
     });
 
-    const result = medicamentaties.map(entry => ({
-      id: entry.id,
-      name: entry.name,
-      startDate: entry.startDate,
-      endDate: entry.endDate,
-      medicines: entry.medicamenteLinks.map(link => ({
-        name: link.medicament.name,
-        quantity: link.quantity,
-      })),
-    }));
 
-    res.status(200).json({
-      message: "Medicamentatie records retrieved successfully!",
-      data: result,
-    });
+    res.status(200).json(medicamentaties);
   } catch (error) {
     console.error("Eroare la obtinerea medicamentatiei:", error);
     res.status(500).json({
