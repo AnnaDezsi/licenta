@@ -19,6 +19,8 @@ import { useCallback } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import BackupIcon from '@mui/icons-material/Backup';
 import DoneIcon from '@mui/icons-material/Done';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import * as Yup from "yup";
 
 const steps = [
@@ -422,9 +424,9 @@ export const AddAnalyzeForm = () => {
                                                     const alreadySelectedParameters = analyzesForm.values.categories.find(cat => cat.name === category.name)?.parameters || [];
 
                                                     const remainingParameters = allPossibleParameters.filter(param => !alreadySelectedParameters.some(p => p.name === param.name));
-                                                    
-                                                    const possibleOptions = allPossibleParameters.map(p => ({label: p.ro_l18n, value: p.name})) || [];
-                                                    const parameterOptions = remainingParameters.map(p => ({label: p.ro_l18n, value: p.name})) || []
+
+                                                    const possibleOptions = allPossibleParameters.map(p => ({ label: p.ro_l18n, value: p.name })) || [];
+                                                    const parameterOptions = remainingParameters.map(p => ({ label: p.ro_l18n, value: p.name })) || []
 
                                                     const { min_val, max_val, unit } = allPossibleParameters.find(param => param.name === parameter.name) || { min_val: 0, max_val: 0, unit: "N/A" };
                                                     return (
@@ -509,11 +511,12 @@ export const AddAnalyzeForm = () => {
                                 width: '100%',
                                 border: "2px solid #00B4D8",
                                 maxHeight: '100%',
+                                borderRadius: '8px',
                                 maxWidth: '100%',
                                 fontSize: '14px',
                                 fontFamily: 'Roboto, sans-serif',
                                 backgroundColor: "#fffffc9",
-                                borderRadius: '5px'
+                                // borderRadius: '5px'
                             }} placeholder='Adauga detalii...' />
 
                         </Grid2>
@@ -522,16 +525,31 @@ export const AddAnalyzeForm = () => {
                                 height: 200,
                                 display: 'flex',
                                 alignItems: 'center',
+                                borderRadius: '8px',
                                 justifyContent: 'center',
                                 border: (theme) => `2px dashed ${theme.palette.primary.main}`,
-                                padding: "20px",
+                                overflow: "hidden",
                                 textAlign: "center",
                                 columnGap: '2em',
                                 position: 'relative'
-                            }}><Typography variant='body1' fontWeight={500}>{analyzesForm.values.file.name}</Typography>
-                                <Button variant="text" size='large' color="error" onClick={handleDeleteFile} startIcon={<DeleteIcon />}>
-                                    Sterge fisierul
-                                </Button>
+                            }}>
+                                <Box sx={{
+                                    width: '100%', height: '100%', backgroundColor: '#fff', display: 'flex', flexDirection: "column", alignItems: 'center', justifyContent: "center",
+                                    boxShadow: '0px 10px 4px 0px #00000010'
+                                }}>
+                                    <Box sx={{
+                                        top: '50%',
+                                        left: '50%',
+                                        position: 'absolute',
+                                        transform: 'translate(-50%, -50%)',
+                                    }}>
+                                        <AttachFileIcon sx={{ fontSize: '200px', width: '70%', height: '70%', color: '#90909020' }} />
+                                    </Box>
+                                    <Typography variant='body1' fontWeight={500}>{analyzesForm.values.file.name}</Typography>
+                                    <Button variant="text" sx={{ mt: 2 }} size="large" color="error" onClick={handleDeleteFile} startIcon={<DeleteIcon />}>
+                                        Sterge
+                                    </Button>
+                                </Box>
                             </Box> :
                                 <Box
                                     {...getRootProps()}
@@ -545,7 +563,13 @@ export const AddAnalyzeForm = () => {
                                         cursor: "pointer",
                                         textAlign: "center",
                                         borderRadius: '5px',
-                                        position: 'relative'
+                                        position: 'relative',
+                                        transition: ".1s",
+                                        "&:hover": {
+                                            transition: ".1s",
+                                            backgroundColor: "#00000007",
+                                            textDecoration: "underline"
+                                        }
                                     }}
                                 >
                                     <Box sx={{
@@ -553,13 +577,13 @@ export const AddAnalyzeForm = () => {
                                         left: '50%',
                                         position: 'absolute',
                                         transform: 'translate(-50%, -50%)',
+
                                     }}>
-                                        <BackupIcon sx={{ fontSize: '200px', width: 200, height: 200, color: '#90909050' }} />
+                                        <BackupIcon sx={{ fontSize: '200px', width: 200, height: 200, color: '#90909020' }} />
                                     </Box>
                                     <input {...getInputProps()} id="file" name="file" type="file" />
 
-                                    <Typography>(Optional) Pentru o acuratete mai buna a viitoarelor analize,
-                                        <br /> te rugam sa adaugi si ultimele analize medicale in format PDF.</Typography>
+                                    <Typography>Incarca fisier PDF</Typography>
 
                                 </Box>
                             }
@@ -591,11 +615,11 @@ export const AddAnalyzeForm = () => {
                             </Box>
                         </Box>
                     </Grid2>
-                    <Grid2 size={12} sx={{m: 0}}>
-                        <Typography sx={{m:0}} align='center' variant='h6'>Analiza a fost adaugata cu succes!</Typography>
+                    <Grid2 size={12} sx={{ m: 0 }}>
+                        <Typography sx={{ m: 0 }} align='center' variant='h6'>Analiza a fost adaugata cu succes!</Typography>
                     </Grid2>
-                    <Grid2 size={12} sx={{m: 0}}>
-                        <Typography  sx={{m:0}}  align="center" variant='body1'>Pentru a afla statusul analizei, te rugam sa vezi chenarul numit "Analizele mele" din partea de jos al paginii</Typography>
+                    <Grid2 size={12} sx={{ m: 0 }}>
+                        <Typography sx={{ m: 0 }} align="center" variant='body1'>Pentru a afla statusul analizei, te rugam sa vezi chenarul numit "Analizele mele" din partea de jos al paginii</Typography>
                     </Grid2>
                 </Grid2>}
                 {currentStep !== steps.length - 1 && <Grid2 direction="row" alignItems="center" justifyContent="center" container sx={{ mt: 2 }} columnGap={2}>

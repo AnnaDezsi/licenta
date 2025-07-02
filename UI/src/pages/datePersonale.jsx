@@ -16,8 +16,8 @@ export const displayBirthDate = (cnp) => {
   try {
     const { birthDate } = generatePersonalDetailsFromCNP(cnp);
 
-    const day = birthDate.getDate(); 
-    const month = birthDate.getMonth(); 
+    const day = birthDate.getDate();
+    const month = birthDate.getMonth();
     const year = birthDate.getFullYear();
 
     const today = new Date();
@@ -66,7 +66,7 @@ export const DatePersonale = () => {
 
   const handleSubmit = async (values) => {
     try {
-      const {data} = await api.put('/personal/user/' + datePersonale?.userId, values)
+      const { data } = await api.put('/personal/user/' + datePersonale?.userId, values)
       dispatch(setAuthPersonalData(data.data));
     } catch (e) {
       throw new Error(e.message);
@@ -112,9 +112,11 @@ export const DatePersonale = () => {
 
         </PageContainer>
       </Box>
-      <Box sx={{mt: 2}}>
-      {isEditingOpen ? <PersonalDataForm datePersonale={datePersonale} handleSubmit={handleSubmit} /> : <DisplayPersonalData />
-      }
+      <Box sx={{ mt: 2 }}>
+        <PageContainer>
+          {isEditingOpen ? <PersonalDataForm datePersonale={datePersonale} handleSubmit={handleSubmit} /> : <DisplayPersonalData />
+          }
+        </PageContainer>
       </Box>
     </>
   )
@@ -237,7 +239,7 @@ const DisplayPersonalData = () => {
                       }
                       label="Fumător"
                     /></Grid2>
-                  <Grid2 size={4}>
+                  {(displayGender(datePersonale?.cnp) == "F") && <Grid2 size={4}>
                     <FormControlLabel
                       control={
                         <Checkbox
@@ -246,7 +248,7 @@ const DisplayPersonalData = () => {
                         />
                       }
                       label="Sarcină activă"
-                    /></Grid2>
+                    /></Grid2>}
                   <Grid2 size={4}>
                     <FormControlLabel
                       control={
@@ -257,9 +259,12 @@ const DisplayPersonalData = () => {
                       }
                       label="Diabet"
                     /></Grid2>
-                  <Grid2 size={12} sx={{mt: 2}}>
-                   <Typography>Nr. sarcini anterioare: {datePersonale?.details?.nrSarciniAnterioare}</Typography></Grid2>
+                  {(displayGender(datePersonale?.cnp) == "F") &&
+                    <Grid2 size={12} sx={{ mt: 2 }}>
+                      <Typography>Nr. sarcini anterioare: {datePersonale?.details?.nrSarciniAnterioare}</Typography>
+                    </Grid2>}
                 </Grid2>
+
               </Paper>
 
             </Grid2>

@@ -16,9 +16,6 @@ import { getAnalyzes, getMedicamentation } from '../store/journal/selectors';
 import { resetJournal, setInitialAnalyzes, setInitialMeds } from '../store/journal/action';
 import { personalDataSelector } from '../store/auth/selectors';
 
-
-
-
 export const JurnalMedical = () => {
     const [uploadNewAnalyzes, setUploadNewAnalyzes] = useState(false)
     const [uploadMedicalJournal, setMedicalJournal] = useState(false)
@@ -29,14 +26,11 @@ export const JurnalMedical = () => {
     const { activeMeds, retroMeds } = useSelector(getMedicamentation);
     const { submitted } = useSelector(getAnalyzes);
 
-    console.log("sub")
-    console.log(submitted)
-
     const userId = useSelector(personalDataSelector)?.userId
 
 
     useEffect(() => {
-        api("/medicamentatie")
+        api("/medicamentatie/" + userId)
             .then(res => {
                 const medicamentatii = res.data.data;
                 const isValid = Array.isArray(medicamentatii) && medicamentatii?.every(el => el.startDate && el.endDate)

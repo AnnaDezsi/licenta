@@ -1,7 +1,7 @@
 import { useMatches } from "react-router-dom";
 import api from "../../services/axiosConfig"
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, Button, Checkbox, CircularProgress, Collapse, Divider, Grid2, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, CircularProgress, Collapse, Divider, Grid2, IconButton, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import { PageContainer } from "../../components/PageContainer/PageContainer";
 import { PageHeader } from "../../components/PageHeader/PageHeader";
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -16,6 +16,8 @@ import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useFormik } from "formik";
+import { v4 as uuidv4 } from 'uuid';
+
 
 export const Pacient = () => {
   const match = useMatches(['/pacienti', '/pacienti/:clientId']);
@@ -28,7 +30,10 @@ export const Pacient = () => {
     address: ""
   })
   const [analize, setAnalize] = useState([])
+  const [isAnalizeLoading, setAnalizeLoading] = useState(false);
+
   const [medicamentatie, setMedicamentatie] = useState([])
+  const [isMedLoading, setMedLoading] = useState(false);
 
   useEffect(() => {
     if (!clientId) return;
@@ -42,12 +47,26 @@ export const Pacient = () => {
           address: data?.personalData?.address || "",
           details: data?.personalData?.details || null
         })
-        setMedicamentatie(data?.medicamentatie)
-        setAnalize(data?.analize.map(a => ({ ...a, mlResults: [] })))
       } catch (e) {
         console.error("Eroare setare pacienti")
       }
     })
+  }, [clientId])
+
+  useEffect(() => {
+    setMedLoading(true)
+    api('/medicamentatie/' + clientId)
+      .then(res => setMedicamentatie(res.data))
+      .catch(err => console.error(err))
+      .finally(_ => setMedLoading(false))
+  }, [clientId])
+
+  useEffect(() => {
+    setAnalizeLoading(true)
+    api('analize/' + clientId)
+      .then(res => setAnalize(res.data.map(a => ({ ...a, mlResults: [] }))))
+      .catch(err => console.error(err))
+      .finally(_ => setAnalizeLoading(false))
   }, [clientId])
 
 
@@ -64,8 +83,8 @@ export const Pacient = () => {
 
       </Box>
       <PageContainer>
-        <Grid2 container spacing={2}>
-          <Grid2 size={6}>
+        <Grid2 container rowSpacing={4} columnSpacing={6} justifyContent="stretch">
+          <Grid2 size="grow">
             <PacientPersonalData personalData={pacientPersonalData} />
           </Grid2>
           <Grid2 size="grow">
@@ -75,7 +94,7 @@ export const Pacient = () => {
             <Medicamentatie medicamentatie={medicamentatie} />
           </Grid2>
           <Grid2 size={12}>
-            <Analize analize={analize} setAnalize={setAnalize} />
+            <Analize analize={analize} setAnalize={setAnalize} isAnalizeLoading={isAnalizeLoading} />
           </Grid2>
         </Grid2>
       </PageContainer>
@@ -83,13 +102,12 @@ export const Pacient = () => {
   )
 }
 
-const Analize = ({ analize, setAnalize }) => {
+const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
   const [currentAnalyze, setCurrentAnalyze] = useState(0);
   const [isMLLoading, setMLLoading] = useState(false);
+  const [isFileDownloaded, setFileDownloaded] = useState(false);
 
   const analyzeData = analize[currentAnalyze]
-
-
 
   const setNext = () => {
     if (currentAnalyze === analize.length - 1) return;
@@ -100,6 +118,33 @@ const Analize = ({ analize, setAnalize }) => {
     if (currentAnalyze === 0) return;
     setCurrentAnalyze(prev => prev - 1);
   }
+
+
+const handleDownloadFile = async (fileId, fileName) => {
+  try {
+    const response = await api.get(`/file/${fileId}`, {
+      responseType: 'blob', // 👈 Important!
+    });
+
+    const blob = new Blob([response.data]);
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || 'downloaded_file';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    setFileDownloaded(true)
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    alert('Failed to download file.');
+  }
+};
+
+
 
   const handleBeginMLAnalyze = (analyzeId) => {
     setMLLoading(true);
@@ -134,121 +179,127 @@ const Analize = ({ analize, setAnalize }) => {
 
 
   return (
-    <Paper sx={{ background: "#fff", p: 2 }}>
-      <Grid2 container direction="column" rowGap={1}>
-        <Grid2 size={12}>
-          <Typography>Analize</Typography>
-        </Grid2>
-        <Grid2 size={12}>
-          <Divider />
-        </Grid2>
-        <Grid2 size={12}>
-          <Grid2 container alignItems="center">
-            <Grid2 size={8}><Typography variant="h4">{analyzeData?.analyzeTitle || ""}</Typography></Grid2>
-            <Grid2 size={4}>
-              <Grid2 container justifyContent="flex-end" columnGap={2}>
-
-                <IconButton disabled={currentAnalyze === 0} onClick={setPrev} color="primary">
-                  <ArrowBackIosNewIcon />
-                </IconButton>
-
-
-                <IconButton disabled={currentAnalyze === analize.length - 1} onClick={setNext} color="primary">
-                  <ArrowForwardIosIcon />
-                </IconButton>
-              </Grid2>
-            </Grid2>
-          </Grid2>
-        </Grid2>
-        <Grid2 size={12}>
-          <Grid2 container spacing={4}>
-            <Grid2 size={6}>
-              <Grid2 size={12}>
-                <Typography>Detalii</Typography>
-              </Grid2>
-              <Grid2 size={6} sx={{ mb: 1 }}>
-                <Divider />
-              </Grid2>
-              <Grid2 size={12}>
-                <Typography variant="body2">Data testarii: {DateUtils.formatDate(analyzeData?.testingDate)}</Typography>
-              </Grid2>
-              <Grid2 size={12}>
-                <Typography variant="body2">Data inregistrare analiza: {DateUtils.formatDate(analyzeData?.createdAt)}</Typography>
-              </Grid2>
-              <Grid2 size={12}>
-                <Typography variant="body2">Institutia de recoltare: {analyzeData?.institution || ""}</Typography>
-              </Grid2>
-              <Grid2 size={12}>
-                <Typography variant="body2">Nume doctor: {analyzeData?.doctor || ""}</Typography>
-              </Grid2>
-            </Grid2>
-            <Grid2 size={6}>
-              <Grid2 size={12} sx={{ mb: 1 }}>
-                <Typography>Valori</Typography>
-              </Grid2>
-              <Grid2 size={12}>
-                {analyzeData?.categories.map((category, index) => {
-                  const results = analyzeData?.results.filter(res => res?.parameter?.medicalCategoryId === category.categoryId)
-                  return (
-                    <Box key={category.id} sx={{
-                      backgroundColor: theme => `${theme.palette.primary.main}30`,
-                      p: 1,
-                      borderRadius: '5px',
-                      mb: index === analyzeData?.categories.length - 1 ? 0 : 1
-                    }}>
-                      <Typography sx={{ mb: 1 }}>{category?.category?.name || "Categoria " + index}</Typography>
-                      <Grid2 container sx={{ pl: 3 }} spacing={1}>
-                        {
-                          results?.map(result => <Grid2 size={12}>
-                            <Grid2 container>
-                              <Grid2 size={6}>
-                                <Typography variant="body2">{result.parameter.ro_l18n}</Typography>
-                              </Grid2>
-
-                              <Grid2 size={6}>
-                                <Typography variant="body2">{result?.value || 0} {result?.parameter?.unit || "N/A"}</Typography>
-                              </Grid2>
-                            </Grid2>
-                          </Grid2>)
-                        }
-
-                      </Grid2>
-                    </Box>
-                  )
-                })}
-              </Grid2>
-            </Grid2>
-            <Grid2 size={6}>
-              <Grid2 size={12}>
-                <Typography>Completarile pacientului</Typography>
-              </Grid2>
-              <Grid2 size={6} sx={{ mb: 1 }}>
-                <Divider />
-              </Grid2>
-              <Grid2 size={12}>
-                {analyzeData?.note ? <Typography variant="body2">{analyzeData?.note}</Typography> : <Typography variant="body2">Nu exista completari scrise</Typography>}
-              </Grid2>
-              <Grid2 size={6} sx={{ mt: 1 }}>
-                {analyzeData?.file ?
-                  <Button onClick={() => console.log("descarcare pdf")} variant="outlined" startIcon={<CloudDownloadIcon />}> Descarca fisierul PDF</Button>
-                  :
-                  <Typography variant="body2">Nu exista fisier atasat</Typography>}
-              </Grid2>
+    <Paper sx={{ overflow: "hidden" }}>
+      {
+        isAnalizeLoading ?
+          <Skeleton variant="rounded" animation="wave" sx={{ backgroundColor: '#3c3c3c10', width: '100%', height: '400px' }} /> :
+          <Grid2 container direction="column" rowGap={1} sx={{ p: 2 }}>
+            <Grid2 size={12}>
+              <Typography>Analize</Typography>
             </Grid2>
             <Grid2 size={12}>
               <Divider />
             </Grid2>
             <Grid2 size={12}>
-                <Typography variant="h6">Analiza doctorului</Typography>
-                {!analyzeData?.mlResults?.length ? <Box sx={{ width: '100%', height: '300px', display: 'flex', alignItems: "center", justifyContent: 'center' }}>
-                  {isMLLoading ? <CircularProgress size={50} /> : <Button sx={{ py: '1em', px: '2em' }} onClick={() => handleBeginMLAnalyze(analyzeData?.id)} variant="contained">Incepe analiza AI</Button>}
+              <Grid2 container alignItems="center">
+                <Grid2 size={8}><Typography variant="h4">{analyzeData?.analyzeTitle || ""}</Typography></Grid2>
+                <Grid2 size={4}>
+                  <Grid2 container justifyContent="flex-end" columnGap={2}>
 
-                </Box> : <ResultForm mlResults={analyzeData?.mlResults || []} />}
+                    <IconButton disabled={currentAnalyze === 0} onClick={setPrev} color="primary">
+                      <ArrowBackIosNewIcon />
+                    </IconButton>
+
+
+                    <IconButton disabled={currentAnalyze === analize.length - 1} onClick={setNext} color="primary">
+                      <ArrowForwardIosIcon />
+                    </IconButton>
+                  </Grid2>
+                </Grid2>
+              </Grid2>
+            </Grid2>
+            <Grid2 size={12}>
+              <Grid2 container spacing={4}>
+                <Grid2 size={6}>
+                  <Grid2 size={12}>
+                    <Typography>Detalii</Typography>
+                  </Grid2>
+                  <Grid2 size={6} sx={{ mb: 1 }}>
+                    <Divider />
+                  </Grid2>
+                  <Grid2 size={12}>
+                    <Typography variant="body2">Data testarii: {DateUtils.formatDate(analyzeData?.testingDate)}</Typography>
+                  </Grid2>
+                  <Grid2 size={12}>
+                    <Typography variant="body2">Data inregistrare analiza: {DateUtils.formatDate(analyzeData?.createdAt)}</Typography>
+                  </Grid2>
+                  <Grid2 size={12}>
+                    <Typography variant="body2">Institutia de recoltare: {analyzeData?.institution || ""}</Typography>
+                  </Grid2>
+                  <Grid2 size={12}>
+                    <Typography variant="body2">Nume doctor: {analyzeData?.doctor || ""}</Typography>
+                  </Grid2>
+                </Grid2>
+                <Grid2 size={6}>
+                  <Grid2 size={12} sx={{ mb: 1 }}>
+                    <Typography>Valori</Typography>
+                  </Grid2>
+                  <Grid2 size={12}>
+                    {analyzeData?.categories.map((category, index) => {
+                      const results = analyzeData?.results.filter(res => res?.parameter?.medicalCategoryId === category.categoryId)
+                      return (
+                        <Box key={category.id} sx={{
+                          backgroundColor: theme => `${theme.palette.primary.main}30`,
+                          p: 1,
+                          borderRadius: '5px',
+                          mb: index === analyzeData?.categories.length - 1 ? 0 : 1
+                        }}>
+                          <Typography sx={{ mb: 1 }}>{category?.category?.name || "Categoria " + index}</Typography>
+                          <Grid2 container sx={{ pl: 3 }} spacing={1}>
+                            {
+                              results?.map(result => <Grid2 key={result.id} size={12}>
+                                <Grid2 container>
+                                  <Grid2 size={6}>
+                                    <Typography variant="body2">{result.parameter.ro_l18n}</Typography>
+                                  </Grid2>
+
+                                  <Grid2 size={6}>
+                                    <Typography variant="body2">{result?.value || 0} {result?.parameter?.unit || "N/A"}</Typography>
+                                  </Grid2>
+                                </Grid2>
+                              </Grid2>)
+                            }
+
+                          </Grid2>
+                        </Box>
+                      )
+                    })}
+                  </Grid2>
+                </Grid2>
+                <Grid2 size={6}>
+                  <Grid2 size={12}>
+                    <Typography>Completarile pacientului</Typography>
+                  </Grid2>
+                  <Grid2 size={6} sx={{ mb: 1 }}>
+                    <Divider />
+                  </Grid2>
+                  <Grid2 size={12}>
+                    {analyzeData?.note ? <Typography variant="body2">{analyzeData?.note}</Typography> : <Typography variant="body2">Nu exista completari scrise</Typography>}
+                  </Grid2>
+                  <Grid2 size={6} sx={{ mt: 1 }}>
+                    {analyzeData?.file ?
+                      <Button disabled={isFileDownloaded} onClick={() => handleDownloadFile(analyzeData?.file?.id, analyzeData?.file?.name)} variant="outlined" startIcon={<CloudDownloadIcon />}> {isFileDownloaded ?"Fisierul a fost descarcat" : "Descarca fisierul PDF"}</Button>
+                      :
+                      <Typography variant="body2">Nu exista fisier atasat</Typography>}
+                  </Grid2>
+                </Grid2>
+                <Grid2 size={12}>
+                  <Divider />
+                </Grid2>
+                <Grid2 size={12}>
+                  <Typography align="center" variant="h6">{!analyzeData?.mlResults.length == 0}Nu exista analiza inteligenta</Typography>
+                  {!analyzeData?.mlResults?.length ? <Box sx={{ width: '100%', height: '120px', display: 'flex', alignItems: "center", justifyContent: 'center' }}>
+                    {isMLLoading ? <CircularProgress size={50} /> : <Button sx={{ py: '1em', px: '2em' }} onClick={() => handleBeginMLAnalyze(analyzeData?.id)} variant="contained">Incepe analiza AI</Button>}
+
+                  </Box> : <ResultForm mlResults={analyzeData?.mlResults || []} />}
+                </Grid2>
+              </Grid2>
             </Grid2>
           </Grid2>
-        </Grid2>
-      </Grid2>
+
+      }
     </Paper>
+
   )
 }
 
@@ -325,7 +376,7 @@ const ResultForm = ({ mlResults }) => {
           />
         </Grid2>
 
-        <Grid2 size={12} sx={{alignItems: 'center', justifyContent:"center", display: "flex"}}>
+        <Grid2 size={12} sx={{ alignItems: 'center', justifyContent: "center", display: "flex" }}>
           <Button size="large" type="submit" variant="contained">
             Trimite analiza pacientului
           </Button>
@@ -340,8 +391,10 @@ const Medicamentatie = ({ medicamentatie }) => {
   const [openRows, setOpenRows] = useState({});
 
   const toggleRow = (id) => {
+    console.log(id);
     setOpenRows(prev => ({ ...prev, [id]: !prev[id] }));
   }
+
 
   return (
     <Paper sx={{ background: "#fff", p: 2 }}>
@@ -357,16 +410,17 @@ const Medicamentatie = ({ medicamentatie }) => {
             <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Nume</TableCell>
-                  <TableCell>Activ</TableCell>
-                  <TableCell >Data incepere</TableCell>
-                  <TableCell >Data sfarsit</TableCell>
-                  <TableCell align="right">Medicamente</TableCell>
+                  <TableCell sx={{ width: "20%", px: 0, fontWeight: 600 }}>Nume</TableCell>
+                  <TableCell sx={{ width: "20%", px: 0, fontWeight: 600 }}>Activ</TableCell>
+                  <TableCell sx={{ width: "20%", px: 0, fontWeight: 600 }}>Data incepere</TableCell>
+                  <TableCell sx={{ width: "20%", px: 0, fontWeight: 600 }}>Data sfarsit</TableCell>
+                  <TableCell sx={{ px: 0, fontWeight: 600 }} align="right">Medicamente</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody sx={{ overflow: "scroll" }}>
-                {medicamentatie.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)).map((row) => (
-                  <React.Fragment>
+                {medicamentatie.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)).map((row) => {
+                 
+                  return <React.Fragment key={row.id}>
                     <TableRow
                       key={row.name}
                       sx={{
@@ -374,12 +428,12 @@ const Medicamentatie = ({ medicamentatie }) => {
 
                       }}
                     >
-                      <TableCell component="th" scope="row">
+                      <TableCell sx={{ width: "20%", px: 0 }} component="th" scope="row">
                         {row.name}
                       </TableCell>
-                      <TableCell>{(new Date(row.startDate) <= new Date() && new Date() <= new Date(row.endDate)) ? "Da" : "Nu"}</TableCell>
-                      <TableCell >{DateUtils.formatDate(row.startDate)}</TableCell>
-                      <TableCell >{DateUtils.formatDate(row.endDate)}</TableCell>
+                      <TableCell sx={{ width: "20%", px: 0 }}>{(new Date(row.startDate) <= new Date() && new Date() <= new Date(row.endDate)) ? "Da" : "Nu"}</TableCell>
+                      <TableCell sx={{ width: "20%", px: 0 }}>{DateUtils.formatDate(row.startDate)}</TableCell>
+                      <TableCell sx={{ width: "20%", px: 0 }}>{DateUtils.formatDate(row.endDate)}</TableCell>
                       <TableCell align="right">({row?.medicamenteLinks.length}) <IconButton
                         aria-label="expand row"
                         size="small"
@@ -388,25 +442,27 @@ const Medicamentatie = ({ medicamentatie }) => {
                         {openRows[row.id] ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                       </IconButton></TableCell>
                     </TableRow>
-                    <TableRow>
-                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                    <TableRow sx={{ px: 0 }}>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0, paddingLeft: 0, paddingRight: 0 }} colSpan={6}>
                         <Collapse in={openRows[row.id]} timeout="auto" unmountOnExit>
-                          <Box sx={{ margin: 1 }}>
-                            <Table size="small" aria-label="purchases">
+                          <Box>
+                            <Table size="small" sx={{ p: 0 }}>
                               <TableHead>
-                                <TableRow>
-                                  <TableCell align="right">Nume medicament</TableCell>
-                                  <TableCell align="right">Cantitate</TableCell>
-                                  <TableCell align="right">Descriere</TableCell>
+                                <TableRow sx={{ p: 0 }}>
+                                  <TableCell sx={{ width: "20%", px: 0, fontWeight: 600 }}>Nume medicament</TableCell>
+                                  <TableCell sx={{ width: "20%", px: 0, fontWeight: 600 }}>Cantitate</TableCell>
+                                  <TableCell sx={{ width: "20%", px: 0, fontWeight: 600 }}>Descriere</TableCell>
+                                  <TableCell sx={{ width: "40%", px: 0, fontWeight: 600 }}></TableCell>
                                 </TableRow>
                               </TableHead>
-                              <TableBody>
-                                {row?.medicamenteLinks.map(med => <TableRow>
-                                  <TableCell align="right" component="th" scope="row">
+                              <TableBody sx={{ p: 0 }}>
+                                {row?.medicamenteLinks.map(med => <TableRow key={med.medicament.name}>
+                                  <TableCell sx={{ width: "20%", px: 0, border: "none" }} component="th" scope="row">
                                     {med.medicament.name}
                                   </TableCell>
-                                  <TableCell align="right">{med.quantity}</TableCell>
-                                  <TableCell align="right">{med.medicament.description}</TableCell>
+                                  <TableCell sx={{ width: "20%", px: 0, border: "none" }} >{med.quantity}</TableCell>
+                                  <TableCell sx={{ width: "20%", px: 0, border: "none" }}>{med.medicament.description}</TableCell>
+                                  <TableCell sx={{ width: "40%", px: 0, border: "none" }}></TableCell>
                                 </TableRow>)}
 
                               </TableBody>
@@ -416,7 +472,7 @@ const Medicamentatie = ({ medicamentatie }) => {
                       </TableCell>
                     </TableRow>
                   </React.Fragment>
-                ))}
+                })}
               </TableBody>
             </Table>
           </TableContainer>
@@ -430,7 +486,7 @@ const PacientPersonalData = ({ personalData }) => {
   const [isCnpShown, setCnpShown] = useState(false);
 
   return (
-    <Paper sx={{ background: "#fff", p: 2 }}>
+    <Paper sx={{ background: "#fff", p: 2, alignSelf: "stretch" }}>
       <Grid2 container direction="column" rowGap={1}>
         <Grid2 size={12}>
           <Typography>Date personale</Typography>
@@ -547,7 +603,7 @@ const PacientPersonalData = ({ personalData }) => {
 const PacientPersonalDataDetails = ({ personalData }) => {
 
   return (
-    <Paper sx={{ background: "#fff", p: 2 }}>
+    <Paper sx={{ background: "#fff", p: 2, alignSelf: "stretch" }}>
       <Grid2 container direction="column" rowGap={1}>
         <Grid2 size={12}>
           <Typography>Detalii </Typography>

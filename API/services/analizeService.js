@@ -1,5 +1,6 @@
 import { categoriesWithParameters } from "../controllers/medicalCategoriesController.js";
 import { Utils } from "../utils/utils.js";
+import { uploadBufferToS3 } from "./blobService.js";
 import axios from 'axios'
 
 export const getMedicalCategoriesAndParameters = async (req, res) => {
@@ -22,14 +23,26 @@ export const createMedicalAnalysis = async (req, res) => {
 
     const parsedCategories = JSON.parse(categories || '[]');
 
-
     try {
-        let fileLink = null;
+        let fileRecord = null;
 
         if (uploadedFile) {
-            fileLink = `s3://bucket/${uploadedFile.originalname}`;
-        }
+            const { key, name, mimeType } = await uploadBufferToS3(
+                uploadedFile.buffer,
+                uploadedFile.originalname,
+                uploadedFile.mimetype
+            );
 
+            fileRecord = await prisma.fileS3.create({
+                data: {
+                    key,
+                    name,
+                    mimeType,
+                    uploaderId: userId,
+                    description: 'File uploaded with medical analysis',
+                },
+            });
+        }
 
         const analyze = await prisma.medical_Analyze.create({
             data: {
@@ -38,9 +51,9 @@ export const createMedicalAnalysis = async (req, res) => {
                 institution,
                 doctor,
                 notes,
-                file: fileLink,
                 userId,
-            }
+                fileId: fileRecord?.id || null,
+            },
         });
 
         for (const category of parsedCategories) {
@@ -59,7 +72,7 @@ export const createMedicalAnalysis = async (req, res) => {
             });
 
             for (const param of category.parameters) {
-                const matchedParam = categoryRecord.parameters.find(p => p.name === param.name);
+                const matchedParam = categoryRecord.parameters.find((p) => p.name === param.name);
                 if (!matchedParam) continue;
 
                 await prisma.medical_Analyze_Result.create({
@@ -72,23 +85,21 @@ export const createMedicalAnalysis = async (req, res) => {
             }
         }
 
-
         return res.status(201).json({
             analyzeTitle: analyze.analyzeTitle,
             testingDate: analyze.testingDate,
             createdAt: analyze.createdAt,
-            checkedBy: analyze?.assignedDoctor || "Nepreluat",
+            checkedBy: analyze?.assignedDoctor || 'Nepreluat',
             institution: analyze?.institution,
-            createdAt: analyze.createdAt
         });
-
     } catch (error) {
         console.error('Eroare la crearea analizei medicale:', error);
         res.status(500).json({
             error: 'Nu s-a putut crea analiza medicala.',
         });
     }
-}
+};
+
 
 export const getUserAnalyzesById = async (req, res) => {
     const { userId: paramUserId } = req.params;
@@ -108,16 +119,45 @@ export const getUserAnalyzesById = async (req, res) => {
                 testingDate: true,
                 createdAt: true,
                 institution: true,
+                doctor: true,
+                notes: true,
+                file: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+
                 assignedDoctor: {
                     select: {
                         id: true,
                         email: true,
-                        role: true
-                    }
-                }
-            }
+                        role: true,
+                    },
+                },
+                categories: {
+                    include: {
+                        category: true,
+                    },
+                },
+                results: {
+                    include: {
+                        parameter: {
+                            select: {
+                                name: true,
+                                ro_l18n: true,
+                                unit: true,
+                                type: true,
+                                medicalCategoryId: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
 
+
+        console.log(analyzes)
         return res.status(200).json(analyzes);
 
     } catch (error) {

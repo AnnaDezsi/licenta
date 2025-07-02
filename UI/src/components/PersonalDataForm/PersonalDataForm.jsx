@@ -253,7 +253,7 @@ export const PersonalDataForm = ({ datePersonale, handleSubmit }) => {
                     label="Fumător"
                   />
                 </Grid2>
-                <Grid2 size={4}>
+                {displayGender(datePersonale?.cnp) == "F" && <Grid2 size={4}>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -263,7 +263,7 @@ export const PersonalDataForm = ({ datePersonale, handleSubmit }) => {
                     }
                     label="Sarcină activă"
                   />
-                </Grid2>
+                </Grid2>}
                 <Grid2 size={4}>
                   <FormControlLabel
                     control={

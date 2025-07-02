@@ -27,3 +27,14 @@ export const authorizeUserOrAdmin = (req, res, next) => {
     next();
 
 };
+
+export const authorizeUserOrDoctor = (req, res, next) => {
+    const isRequiredIdSameAsLoggedId = req.user.userId === +req.params.userId
+    const isHigherRankRole = req.user?.role === 'ADMIN' || req.user?.role === 'DOCTOR'
+
+    console.log(isRequiredIdSameAsLoggedId , isHigherRankRole)
+
+
+    next();
+
+};

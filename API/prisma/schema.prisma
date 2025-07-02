@@ -74,6 +74,7 @@ model Article {
 model FileS3 {
   id          Int      @id @default(autoincrement())
   name        String
+  key         String 
   uploaderId  Int
   uploadedAt  DateTime @default(now())
   isDeleted   Boolean  @default(false)
@@ -81,6 +82,8 @@ model FileS3 {
   mimeType    String
 
   uploader User      @relation(fields: [uploaderId], references: [id])
+  analyze     Medical_Analyze?  @relation("AnalyzeFile")
+
   articles Article[] // one-to-many relation: one image → many articles
 }
 
@@ -180,17 +183,21 @@ model Medical_Analyze {
   institution  String
   doctor       String?
   notes        String?
-  file         String?
   createdAt    DateTime  @default(now())
 
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  doctorId       Int?
+  assignedDoctor User? @relation("DoctorUser", fields: [doctorId], references: [id], onDelete: SetNull)
+
+  fileId   Int?     @unique
+  file     FileS3?  @relation("AnalyzeFile", fields: [fileId], references: [id], onDelete: Cascade)
+
   categories     Medical_Analyze_Category[]
   results        Medical_Analyze_Result[]
-  doctorId       Int?
-  assignedDoctor User?                      @relation("DoctorUser", fields: [doctorId], references: [id], onDelete: SetNull)
 }
+
 
 model Medical_Analyze_Category {
   id         Int @id @default(autoincrement())
