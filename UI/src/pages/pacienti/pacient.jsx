@@ -120,29 +120,29 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
   }
 
 
-const handleDownloadFile = async (fileId, fileName) => {
-  try {
-    const response = await api.get(`/file/${fileId}`, {
-      responseType: 'blob', // 👈 Important!
-    });
+  const handleDownloadFile = async (fileId, fileName) => {
+    try {
+      const response = await api.get(`/file/${fileId}`, {
+        responseType: 'blob', // 👈 Important!
+      });
 
-    const blob = new Blob([response.data]);
+      const blob = new Blob([response.data]);
 
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName || 'downloaded_file';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || 'downloaded_file';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
 
-    setFileDownloaded(true)
-  } catch (error) {
-    console.error('Error downloading file:', error);
-    alert('Failed to download file.');
-  }
-};
+      setFileDownloaded(true)
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      alert('Failed to download file.');
+    }
+  };
 
 
 
@@ -274,11 +274,16 @@ const handleDownloadFile = async (fileId, fileName) => {
                     <Divider />
                   </Grid2>
                   <Grid2 size={12}>
-                    {analyzeData?.note ? <Typography variant="body2">{analyzeData?.note}</Typography> : <Typography variant="body2">Nu exista completari scrise</Typography>}
+                    {analyzeData?.notes ?
+                        <Box sx={{ p: 2, backgroundColor: theme => theme.palette.primary.main + "20"}}>
+                           <Typography sx={{fontStyle: "italic"}} variant="body2">"{analyzeData?.notes}"</Typography>
+                        </Box>
+
+                      : <Typography variant="body2">Nu exista completari scrise</Typography>}
                   </Grid2>
                   <Grid2 size={6} sx={{ mt: 1 }}>
                     {analyzeData?.file ?
-                      <Button disabled={isFileDownloaded} onClick={() => handleDownloadFile(analyzeData?.file?.id, analyzeData?.file?.name)} variant="outlined" startIcon={<CloudDownloadIcon />}> {isFileDownloaded ?"Fisierul a fost descarcat" : "Descarca fisierul PDF"}</Button>
+                      <Button disabled={isFileDownloaded} onClick={() => handleDownloadFile(analyzeData?.file?.id, analyzeData?.file?.name)} variant="outlined" startIcon={<CloudDownloadIcon />}> {isFileDownloaded ? "Fisierul a fost descarcat" : "Descarca fisierul PDF"}</Button>
                       :
                       <Typography variant="body2">Nu exista fisier atasat</Typography>}
                   </Grid2>
@@ -419,7 +424,7 @@ const Medicamentatie = ({ medicamentatie }) => {
               </TableHead>
               <TableBody sx={{ overflow: "scroll" }}>
                 {medicamentatie.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)).map((row) => {
-                 
+
                   return <React.Fragment key={row.id}>
                     <TableRow
                       key={row.name}
