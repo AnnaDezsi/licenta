@@ -34,7 +34,7 @@ const journalReducer = (state = initialState, action) => {
     switch (action.type) {
         case SET_INITIAL_MEDS: {
             const { activeMeds, retroMeds } = splitMedsBasedOnDate(action.payload);
-
+            
             return {
                 ...state,
                 medicamentatie: {
