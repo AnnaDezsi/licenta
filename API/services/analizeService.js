@@ -85,7 +85,9 @@ export const createMedicalAnalysis = async (req, res) => {
             }
         }
 
+        console.log("cacatul asta o fost apelat")
         return res.status(201).json({
+            id: analyze.id,
             analyzeTitle: analyze.analyzeTitle,
             testingDate: analyze.testingDate,
             createdAt: analyze.createdAt,
@@ -100,10 +102,52 @@ export const createMedicalAnalysis = async (req, res) => {
     }
 };
 
+export const getUserAnalyzeById = async (req, res) => {
+
+}
+
+export const deleteUserAnalyzeById = async (req, res) => {
+    const { userId, analyzeId } = req.params;
+    const {role} = req.user;
+
+    if (!userId || !analyzeId) {
+        return res.status(400).json({ error: "Missing userId or analyzeId" });
+    }
+
+    try {
+        const analyze = await prisma.medical_Analyze.findUnique({
+            where: { id: parseInt(analyzeId) },
+            include: { user: true },
+        });
+
+        if (!analyze) {
+            return res.status(404).json({ error: "Analyze not found" });
+        }
+
+        if (role !== 'DOCTOR' && role !== 'ADMIN' && analyze.userId !== parseInt(userId)) {
+            return res.status(403).json({ error: "Unauthorized access to analyze" });
+        }
+
+        await prisma.medical_Analyze.delete({
+            where: { id: parseInt(analyzeId) },
+        });
+
+        return res.status(200).json({message: "deleted"})
+    } catch (error) {
+        console.error('Eroare la stergerea analizei medicale:', error);
+        return res.status(500).json({
+            error: 'Nu s-a putut sterge analiza medicala.',
+        });
+    }
+};
+
+
 
 export const getUserAnalyzesById = async (req, res) => {
     const { userId: paramUserId } = req.params;
+    const { role } = req.user;
     const userId = parseInt(paramUserId);
+
 
     try {
         const analyzes = await prisma.medical_Analyze.findMany({
@@ -122,7 +166,7 @@ export const getUserAnalyzesById = async (req, res) => {
                 doctor: true,
                 notes: true,
                 diagnosis: true,
-                mlResults: true,
+                mlResults: role === "DOCTOR" || role === 'ADMIN',
                 file: {
                     select: {
                         id: true,
@@ -230,7 +274,7 @@ export const assignDoctorToAnalyze = async (req, res) => {
 
 export const saveDiagnosis = async (req, res) => {
     const { doctorNote, mlResults } = req.body;
-    const { analyzeId } = req.params; 
+    const { analyzeId } = req.params;
 
     try {
         // 1. Create new diagnosis for the analyze
