@@ -74,6 +74,7 @@ const journalReducer = (state = initialState, action) => {
         }
 
         case SET_INITIAL_ANALYSES: {
+            console.log("called")
             return {
                 ...state,
                 analyzes: {

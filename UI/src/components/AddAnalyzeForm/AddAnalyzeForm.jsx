@@ -123,16 +123,9 @@ export const AddAnalyzeForm = () => {
                     }
                 })
                     .then(res => {
-                        console.log("res", res)
-                        const payload = {
-                            analyzeTitle: res?.data?.analyzeTitle,
-                            assignedDoctor: (res?.data?.checkedBy === 'Nepreluat') && null,
-                            institution: res?.data?.institution,
-                            testingDate: res?.data?.testingDate,
-                            createdAt: res?.data?.createdAt
-                        }
+                        
 
-                        dispatch(addAnalyze(payload))
+                        dispatch(addAnalyze(res.data))
                     })
 
                     .catch(err => {

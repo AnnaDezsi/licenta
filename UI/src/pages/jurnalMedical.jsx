@@ -18,14 +18,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import InfoIcon from '@mui/icons-material/Info';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { ConfirmationModal } from '../components/ConfirmationModal/ConfirmationModal';
 
 export const JurnalMedical = () => {
     const [uploadNewAnalyzes, setUploadNewAnalyzes] = useState(false)
     const [uploadMedicalJournal, setMedicalJournal] = useState(false)
-
     const dispatch = useDispatch();
-
-
     const { activeMeds, retroMeds } = useSelector(getMedicamentation);
     const { submitted } = useSelector(getAnalyzes);
 
@@ -197,6 +195,8 @@ export const JurnalMedical = () => {
 }
 
 const AnalyzeBoard = ({ submitted, title }) => {
+
+
     return (
         <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
             <Typography variant='h6' fontWeight={400}>{title}</Typography>
@@ -206,124 +206,7 @@ const AnalyzeBoard = ({ submitted, title }) => {
             }}>
 
                 {submitted.length ? submitted.map((analyze, index) => (
-                    <ListItem
-                        key={uuidv4()}
-                        sx={{
-                            marginBottom: index === submitted.length - 1 ? 0 : '.4em',
-                            p: 0,
-
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            justifyContent: "space-between",
-                            '&:hover .hover-box-main': {
-                                width: '89.5%',
-                                borderRadius: '5px 0px 0px 5px',
-                                backgroundColor: theme => `${theme.palette.primary.main}15`,
-                                border: theme => `2px solid ${theme.palette.primary.main}20`
-                            },
-                            '&:hover .hover-box-action': {
-                                width: '10%',
-                                opacity: 1,
-                                transform: 'translateX(0)',
-                            }
-                        }}
-                    >
-                        <Box
-                            className="hover-box-main"
-                            sx={{
-                                p: 1,
-                                border: theme => `2px solid #3c3c3c20`,
-                                backgroundColor: theme => `${theme.palette.primary.main}05`,
-                                transition: 'all .1s',
-                                borderRadius: '5px',
-                                width: '100%',
-                            }}
-                        >
-                            <Grid2 container>
-                                <Grid2 size={12}>
-                                    <Grid2 container alignItems="center" direction="row" columnGap={2} justifyContent="space-between">
-                                        <Grid2 size="grow">
-                                            <Typography sx={{ my: 1 }}>{analyze.analyzeTitle}</Typography>
-                                        </Grid2>
-                                        <Grid2 size="auto">
-                                            <Tooltip placement='top' title="In curand unul dintre doctorii nostri va prelua analiza dumneavostra">
-                                                <Box sx={{
-                                                    // border: theme => `1px solid ${theme.palette.primary.main}70`,
-                                                    borderRadius: '5px',
-                                                    px: '0.4em',
-                                                    cursor: "pointer",
-                                                    display: "flex",
-                                                    columnGap: ".5em",
-                                                    alignItems: "center"
-                                                }}>
-                                                    <Typography variant='body2'>{analyze.checkedBy || "Nepreluat"}</Typography>
-                                                    <InfoIcon sx={{ color: "#3c3c3c40" }} />
-                                                </Box>
-                                            </Tooltip>
-                                        </Grid2>
-
-                                    </Grid2>
-                                </Grid2>
-
-                                <Grid2 size={12}>
-                                    <Divider />
-                                </Grid2>
-                                <Grid2 size={12}>
-                                    <Typography variant='body2' sx={{ my: 1 }}>Efectuare analize: {DateUtils.formatDate(analyze.testingDate)}</Typography>
-                                </Grid2>
-                                <Grid2 size={12}>
-                                    <Typography variant='body2' sx={{ my: 1 }}>Centru medical: {analyze.institution}</Typography>
-                                </Grid2>
-                                <Grid2 size={12}>
-                                    <Typography variant='body2' sx={{ my: 1 }}>Creat: {DateUtils.formatDate(analyze.createdAt)}</Typography>
-                                </Grid2>
-                            </Grid2>
-                        </Box>
-                        <Box
-                            className="hover-box-action"
-                            sx={{
-                                border: `2px solid #3c3c3c20`,
-                                borderRadius: '0px 5px 5px 0px',
-                                width: 0,
-                                height: '100%',
-                                opacity: 0,
-                                overflow: 'hidden',
-                                transform: 'translateX(-10px)',
-                                transition: 'all .1s',
-                                "&:hover": {
-                                    border: theme => `2px solid ${theme.palette.primary.main}20`
-                                }
-                            }}
-                        >
-                            <Grid2 container flexDirection="column" alignItems="center">
-                                <Grid2 size={12}>
-                                    <Tooltip placement='right' title="Deschide analiza intr-o fereastra noua">
-                                        <IconButton sx={{
-                                            border: theme => `2px solid transparent`,
-                                            borderRadius: "0px",
-                                            width: '100%',
-                                            height: '100%',
-                                        }}>
-                                            <OpenInNewIcon sx={{ backgroundColor: "transparent", borderRadius: 0 }} />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Grid2>
-                                <Grid2 size={12}>
-                                    <Tooltip placement='right' title="Sterge analiza">
-                                        <IconButton sx={{
-                                            border: theme => `2px solid transparent`,
-                                            borderRadius: "0px",
-                                            width: '100%',
-                                            height: '100%',
-                                        }}>
-                                            <DeleteIcon sx={{ backgroundColor: "transparent", borderRadius: 0 }} />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Grid2>
-                            </Grid2>
-                        </Box>
-
-                    </ListItem>
+                    <AnalyzeCard key={analyze.id} analyze={analyze} amount={submitted.length} index={index} />
                 )) : <Box sx={{
                     width: 1,
                     height: 1,
@@ -333,9 +216,170 @@ const AnalyzeBoard = ({ submitted, title }) => {
                 }}>
 
                     <Typography>Nu exista analize active</Typography>
-                </Box>}
+                </Box>
+                }
             </List>
         </Paper>
+    )
+}
+
+const AnalyzeCard = ({ analyze, amount,  index }) => {
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
+    const datePersonale = useSelector(personalDataSelector);
+    const { submitted } = useSelector(getAnalyzes);
+
+    const dispatch = useDispatch();
+
+    const handleDeleteAnalyze = (analyzeId) => {
+        api.delete('/analize/' + datePersonale.userId + "/" + analyzeId)
+        .then(res => {
+            if(res.status === 200){
+                const filtered = submitted.filter(a => a.id !== analyze.id);
+                console.log(filtered)
+                dispatch(setInitialAnalyzes(filtered))
+            }
+        })
+        .catch(err => console.error(err))
+        .finally(_ => setConfirmingDelete(false))
+    }
+
+
+    return (
+        <ListItem
+            key={uuidv4()}
+            sx={{
+                marginBottom: index === amount - 1 ? 0 : '.4em',
+                p: 0,
+
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: "space-between",
+                '&:hover .hover-box-main': {
+                    width: '89.5%',
+                    borderRadius: '5px 0px 0px 5px',
+                    backgroundColor: theme => `${theme.palette.primary.main}15`,
+                    border: theme => `2px solid ${theme.palette.primary.main}20`
+                },
+                '&:hover .hover-box-action': {
+                    width: '10%',
+                    opacity: 1,
+                    transform: 'translateX(0)',
+                }
+            }}
+        >
+            <Box
+                className="hover-box-main"
+                sx={{
+                    p: 1,
+                    border: theme => `2px solid #3c3c3c20`,
+                    backgroundColor: theme => `${theme.palette.primary.main}05`,
+                    transition: 'all .1s',
+                    borderRadius: '5px',
+                    width: '100%',
+                }}
+            >
+                <Grid2 container>
+                    <Grid2 size={12}>
+                        <Grid2 container alignItems="center" direction="row" columnGap={2} justifyContent="space-between">
+                            <Grid2 size="grow">
+                                <Typography sx={{ my: 1 }}>{analyze.analyzeTitle}</Typography>
+                            </Grid2>
+                            <Grid2 size="auto">
+                                {!analyze.assignedDoctor ?
+                                    <Tooltip placement='top' title="In curand unul dintre doctorii nostri va prelua analiza dumneavostra">
+                                        <Box sx={{
+                                            borderRadius: '5px',
+                                            px: '0.4em',
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            columnGap: ".5em",
+                                            alignItems: "center"
+                                        }}>
+                                            <Typography variant='body2'>Nepreluat</Typography>
+                                            <InfoIcon sx={{ color: "#3c3c3c40" }} />
+                                        </Box>
+                                    </Tooltip> :
+                                    <Box sx={{
+                                            borderRadius: '5px',
+                                        px: '0.4em',
+                                        display: "flex",
+                                        columnGap: ".5em",
+                                        alignItems: "center"
+                                    }}>
+                                        <Typography variant='body2'>{"Preluat de Dr. " + analyze.assignedDoctor?.personalData?.firstName + " " + analyze.assignedDoctor?.personalData?.lastName}</Typography>
+
+                                    </Box>
+                                }
+                            </Grid2>
+
+                        </Grid2>
+                    </Grid2>
+
+                    <Grid2 size={12}>
+                        <Divider />
+                    </Grid2>
+                    <Grid2 size={12}>
+                        <Typography variant='body2' sx={{ my: 1 }}>Efectuare analize: {DateUtils.formatDate(analyze.testingDate)}</Typography>
+                    </Grid2>
+                    <Grid2 size={12}>
+                        <Typography variant='body2' sx={{ my: 1 }}>Centru medical: {analyze.institution}</Typography>
+                    </Grid2>
+                    <Grid2 size={12}>
+                        <Typography variant='body2' sx={{ my: 1 }}>Creat: {DateUtils.formatDate(analyze.createdAt)}</Typography>
+                    </Grid2>
+                </Grid2>
+            </Box>
+            <Box
+                className="hover-box-action"
+                sx={{
+                    border: `2px solid #3c3c3c20`,
+                    borderRadius: '0px 5px 5px 0px',
+                    width: 0,
+                    height: '100%',
+                    opacity: 0,
+                    overflow: 'hidden',
+                    transform: 'translateX(-10px)',
+                    transition: 'all .1s',
+                    "&:hover": {
+                        border: theme => `2px solid ${theme.palette.primary.main}20`
+                    }
+                }}
+            >
+                <Grid2 container flexDirection="column" alignItems="center">
+                    <Grid2 size={12}>
+                        <Tooltip placement='right' title="Deschide analiza intr-o fereastra noua">
+                            <IconButton sx={{
+                                border: theme => `2px solid transparent`,
+                                borderRadius: "0px",
+                                width: '100%',
+                                height: '100%',
+                            }}>
+                                <OpenInNewIcon sx={{ backgroundColor: "transparent", borderRadius: 0 }} />
+                            </IconButton>
+                        </Tooltip>
+                    </Grid2>
+                    <Grid2 size={12}>
+                        <ConfirmationModal title='Doriti sa stergeti analiza aceasta?' isOpen={confirmingDelete} handleClose={() => setConfirmingDelete(false)} handleConfirm={() => handleDeleteAnalyze(analyze.id)}>
+                            {console.log(analyze)}
+                            <Typography>{analyze.analyzeTitle}</Typography>
+                        </ConfirmationModal>
+                        <Tooltip placement='right' title="Sterge analiza">
+                            <IconButton
+                                onClick={() => setConfirmingDelete(true)}
+                                sx={{
+                                    border: theme => `2px solid transparent`,
+                                    borderRadius: "0px",
+                                    width: '100%',
+                                    height: '100%'
+                                }}>
+                                <DeleteIcon sx={{ backgroundColor: "transparent", borderRadius: 0 }} />
+                            </IconButton>
+                        </Tooltip>
+                    </Grid2>
+                </Grid2>
+            </Box>
+
+        </ListItem>
     )
 }
 
@@ -345,7 +389,6 @@ const MedicBoard = ({ medicamentatie, title }) => {
         setOpenRows(prev => ({ ...prev, [id]: !prev[id] }));
     }
 
-    console.log(openRows);
 
     return (
         <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>

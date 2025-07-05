@@ -85,11 +85,13 @@ export const createMedicalAnalysis = async (req, res) => {
             }
         }
 
+        console.log("cacatul asta o fost apelat")
         return res.status(201).json({
+            id: analyze.id,
             analyzeTitle: analyze.analyzeTitle,
             testingDate: analyze.testingDate,
             createdAt: analyze.createdAt,
-            checkedBy: analyze?.assignedDoctor || 'Nepreluat',
+            assignedDoctor: analyze?.assignedDoctor,
             institution: analyze?.institution,
         });
     } catch (error) {
@@ -100,10 +102,52 @@ export const createMedicalAnalysis = async (req, res) => {
     }
 };
 
+export const getUserAnalyzeById = async (req, res) => {
+
+}
+
+export const deleteUserAnalyzeById = async (req, res) => {
+    const { userId, analyzeId } = req.params;
+    const {role} = req.user;
+
+    if (!userId || !analyzeId) {
+        return res.status(400).json({ error: "Missing userId or analyzeId" });
+    }
+
+    try {
+        const analyze = await prisma.medical_Analyze.findUnique({
+            where: { id: parseInt(analyzeId) },
+            include: { user: true },
+        });
+
+        if (!analyze) {
+            return res.status(404).json({ error: "Analyze not found" });
+        }
+
+        if (role !== 'DOCTOR' && role !== 'ADMIN' && analyze.userId !== parseInt(userId)) {
+            return res.status(403).json({ error: "Unauthorized access to analyze" });
+        }
+
+        await prisma.medical_Analyze.delete({
+            where: { id: parseInt(analyzeId) },
+        });
+
+        return res.status(200).json({message: "deleted"})
+    } catch (error) {
+        console.error('Eroare la stergerea analizei medicale:', error);
+        return res.status(500).json({
+            error: 'Nu s-a putut sterge analiza medicala.',
+        });
+    }
+};
+
+
 
 export const getUserAnalyzesById = async (req, res) => {
     const { userId: paramUserId } = req.params;
+    const { role } = req.user;
     const userId = parseInt(paramUserId);
+
 
     try {
         const analyzes = await prisma.medical_Analyze.findMany({
@@ -121,6 +165,8 @@ export const getUserAnalyzesById = async (req, res) => {
                 institution: true,
                 doctor: true,
                 notes: true,
+                diagnosis: true,
+                mlResults: role === "DOCTOR" || role === 'ADMIN',
                 file: {
                     select: {
                         id: true,
@@ -133,6 +179,12 @@ export const getUserAnalyzesById = async (req, res) => {
                         id: true,
                         email: true,
                         role: true,
+                        personalData: {
+                            select: {
+                                firstName: true,
+                                lastName: true
+                            }
+                        }
                     },
                 },
                 categories: {
@@ -157,7 +209,6 @@ export const getUserAnalyzesById = async (req, res) => {
         });
 
 
-        console.log(analyzes)
         return res.status(200).json(analyzes);
 
     } catch (error) {
@@ -165,6 +216,96 @@ export const getUserAnalyzesById = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const assignDoctorToAnalyze = async (req, res) => {
+    const doctorId = req.user.userId;
+    const { analyzeId } = req.body;
+
+    try {
+        const analyze = await prisma.medical_Analyze.findUnique({
+            where: { id: parseInt(analyzeId) },
+            select: {
+                id: true,
+                assignedDoctor: {
+                    select: { id: true }
+                }
+            }
+        });
+
+        if (!analyze) {
+            return res.status(404).json({ error: "Analiza nu a fost găsită." });
+        }
+
+        if (analyze.assignedDoctor) {
+            return res.status(400).json({ error: "Un doctor a preluat deja analiza pacientului." });
+        }
+
+        const updatedAnalyze = await prisma.medical_Analyze.update({
+            where: { id: parseInt(analyzeId) },
+            data: {
+                assignedDoctor: {
+                    connect: { id: parseInt(doctorId) },
+                },
+            },
+            select: {
+                assignedDoctor: {
+                    select: {
+                        id: true,
+                        email: true,
+                        role: true,
+                        personalData: {
+                            select: {
+                                firstName: true,
+                                lastName: true
+                            }
+                        }
+                    },
+                },
+            },
+        });
+
+        return res.status(200).json(updatedAnalyze);
+    } catch (error) {
+        console.error("Eroare la atribuirea doctorului:", error);
+        return res.status(500).json({ error: "Eroare internă la server." });
+    }
+};
+
+
+export const saveDiagnosis = async (req, res) => {
+    const { doctorNote, mlResults } = req.body;
+    const { analyzeId } = req.params;
+
+    try {
+        // 1. Create new diagnosis for the analyze
+        const diagnosis = await prisma.medical_Analyze_Diagnosis.create({
+            data: {
+                doctorNote,
+                analyze: { connect: { id: parseInt(analyzeId) } },
+            },
+        });
+
+        // 2. Update mlResults that match resultName and analyzeId
+        for (const result of mlResults) {
+            await prisma.medical_Analyze_ML_Result.updateMany({
+                where: {
+                    analyzeId: parseInt(analyzeId),
+                    resultName: result.resultName,
+                },
+                data: {
+                    includeInReport: result.includeInReport
+                },
+            });
+        }
+
+        return res.status(200).json(diagnosis);
+    } catch (error) {
+        console.error("Eroare la salvarea diagnosticului:", error);
+        return res.status(500).json({ error: "Eroare internă la server." });
+    }
+};
+
+
 
 
 export const startMLForAnalyzeId = async (req, res) => {
@@ -207,12 +348,30 @@ export const startMLForAnalyzeId = async (req, res) => {
 
         payload['Age'] = Utils.getAgeFromCNP(cnp);
         payload['Pregnancies'] = pregnancies;
+        payload['Gender'] = Utils.getGenderFromCNP(cnp);
 
         const responseFromML = await axios.post(process.env.ML_APP_PATH + "/predict", {
             parameters: payload
         });
 
-        res.status(200).json(responseFromML.data)
+
+        const mlResults = responseFromML.data.results;
+
+        const savedResults = [];
+
+        for (const result of mlResults) {
+            const saved = await prisma.medical_Analyze_ML_Result.create({
+                data: {
+                    resultName: result.disease,
+                    confirmed: false,
+                    analyze: { connect: { id: analyzeId } }
+                }
+            });
+
+            savedResults.push(saved);
+        }
+
+        res.status(200).json(savedResults);
 
     } catch (error) {
         console.error('Error encountered by ML', error);

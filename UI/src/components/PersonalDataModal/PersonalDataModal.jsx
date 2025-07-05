@@ -50,7 +50,7 @@ export const PersonalDataModal = ({ isOpen = false, setModalOpen }) => {
                 dispatch(setAuthPersonalData(response.data.data))
                 setModalOpen(false);
             } catch (error) {
-                console.log(error)
+                console.error(error)
                 if (error.status === 400) {
                     if (error.response.data.message === "CNP-ul introdus exista deja in baza de date.") {
                         formik.setErrors({ cnp: error.response.data.message })
