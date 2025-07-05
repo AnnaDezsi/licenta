@@ -22,16 +22,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 export const JurnalMedical = () => {
     const [uploadNewAnalyzes, setUploadNewAnalyzes] = useState(false)
     const [uploadMedicalJournal, setMedicalJournal] = useState(false)
-
     const dispatch = useDispatch();
-
-
     const { activeMeds, retroMeds } = useSelector(getMedicamentation);
     const { submitted } = useSelector(getAnalyzes);
-
-    console.log('ameds', activeMeds);
-    console.log('retmeds', retroMeds);
-
 
     const userId = useSelector(personalDataSelector)?.userId
 
@@ -345,7 +338,6 @@ const MedicBoard = ({ medicamentatie, title }) => {
         setOpenRows(prev => ({ ...prev, [id]: !prev[id] }));
     }
 
-    console.log(openRows);
 
     return (
         <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>

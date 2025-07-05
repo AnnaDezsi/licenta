@@ -4,7 +4,7 @@ import pandas as pd
 
 class DiabetesModel:
     def __init__(self):
-        self.name = "Diabetes"
+        self.name = "Diabet"
         self.model_path = "ai_models/resources/diabetes_model.joblib"
         self.scaler_path = "ai_models/resources/diabetes_scaler.joblib"
         self.model = None
@@ -31,6 +31,6 @@ class DiabetesModel:
         scaled = self.scaler.transform(df)
         prediction = self.model.predict(scaled)[0]
         return {
-            "disease": "Diabetes",
+            "disease": this.name,
             "prediction": bool(prediction)
         }

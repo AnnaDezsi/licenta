@@ -157,7 +157,6 @@ export const getUserAnalyzesById = async (req, res) => {
         });
 
 
-        console.log(analyzes)
         return res.status(200).json(analyzes);
 
     } catch (error) {
@@ -207,6 +206,7 @@ export const startMLForAnalyzeId = async (req, res) => {
 
         payload['Age'] = Utils.getAgeFromCNP(cnp);
         payload['Pregnancies'] = pregnancies;
+        payload['Gender'] = Utils.getGenderFromCNP(cnp);
 
         const responseFromML = await axios.post(process.env.ML_APP_PATH + "/predict", {
             parameters: payload

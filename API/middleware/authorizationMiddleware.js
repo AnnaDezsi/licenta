@@ -18,8 +18,6 @@ export const authorizeUserOrAdmin = (req, res, next) => {
     const isRequiredIdSameAsLoggedId = req.user.userId === +req.params.userId
     const isAdmin = req.user?.role === 'ADMIN';
 
-    console.log(isRequiredIdSameAsLoggedId , isAdmin)
-
     if (!isRequiredIdSameAsLoggedId && !isAdmin) {
         return res.status(403).json({ error: 'Access denied' });
     }

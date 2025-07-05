@@ -1,5 +1,5 @@
 export class Utils {
-  static generatePersonalDetailsFromCNP = (cnp) => {
+  static getBirthDateFromCNP = (cnp) => {
     if (cnp.length !== 13 || isNaN(Number(cnp))) {
       throw new Error("CNP-ul trebuie să aibă exact 13 caractere numerice");
     }
@@ -8,13 +8,6 @@ export class Utils {
     const givenYear = cnp.slice(1, 3);
     const givenMonth = cnp.slice(3, 5);
     const givenDay = cnp.slice(5, 7);
-
-    const validFemaleCharacters = ["2", "4", "6", "8"];
-    const validMaleCharacters = ["1", "3", "5", "7"];
-
-    if (![...validFemaleCharacters, ...validMaleCharacters].includes(givenGenderChar)) {
-      throw new Error("CNP-ul trebuie să înceapă cu un caracter valid");
-    }
 
     let year;
     switch (givenGenderChar) {
@@ -31,7 +24,7 @@ export class Utils {
         year = "20" + givenYear;
         break;
       default:
-        year = givenYear;
+        throw new Error("CNP-ul trebuie să înceapă cu un caracter valid");
     }
 
     const dateString = `${year}-${givenMonth}-${givenDay}`;
@@ -41,14 +34,29 @@ export class Utils {
       throw new Error("Data nașterii este invalidă");
     }
 
-    return {
-      gender: validFemaleCharacters.includes(givenGenderChar) ? "F" : "M",
-      birthDate,
-    };
+    return birthDate;
   };
 
+  static getGenderFromCNP = (cnp) => {
+    if (cnp.length !== 13 || isNaN(Number(cnp))) {
+      throw new Error("CNP-ul trebuie să aibă exact 13 caractere numerice");
+    }
+
+    const givenGenderChar = cnp[0];
+    const validFemaleCharacters = ["2", "4", "6", "8"];
+    const validMaleCharacters = ["1", "3", "5", "7"];
+
+    if (![...validFemaleCharacters, ...validMaleCharacters].includes(givenGenderChar)) {
+      throw new Error("CNP-ul trebuie să înceapă cu un caracter valid");
+    }
+
+    return validFemaleCharacters.includes(givenGenderChar) ? "F" : "M";
+  };
+
+
+
   static getAgeFromCNP = (cnp) => {
-    const { birthDate } = Utils.generatePersonalDetailsFromCNP(cnp);
+    const birthDate = Utils.getBirthDateFromCNP(cnp);
 
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
