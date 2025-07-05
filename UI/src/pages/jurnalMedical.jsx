@@ -27,6 +27,10 @@ export const JurnalMedical = () => {
     const { activeMeds, retroMeds } = useSelector(getMedicamentation);
     const { submitted } = useSelector(getAnalyzes);
 
+    console.log('ameds', activeMeds);
+    console.log('retmeds', retroMeds);
+
+
     const userId = useSelector(personalDataSelector)?.userId
 
     useEffect(() => {
