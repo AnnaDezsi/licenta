@@ -121,6 +121,8 @@ export const getUserAnalyzesById = async (req, res) => {
                 institution: true,
                 doctor: true,
                 notes: true,
+                diagnosis: true,
+                mlResults: true,
                 file: {
                     select: {
                         id: true,
@@ -226,6 +228,41 @@ export const assignDoctorToAnalyze = async (req, res) => {
 };
 
 
+export const saveDiagnosis = async (req, res) => {
+    const { doctorNote, mlResults } = req.body;
+    const { analyzeId } = req.params; 
+
+    try {
+        // 1. Create new diagnosis for the analyze
+        const diagnosis = await prisma.medical_Analyze_Diagnosis.create({
+            data: {
+                doctorNote,
+                analyze: { connect: { id: parseInt(analyzeId) } },
+            },
+        });
+
+        // 2. Update mlResults that match resultName and analyzeId
+        for (const result of mlResults) {
+            await prisma.medical_Analyze_ML_Result.updateMany({
+                where: {
+                    analyzeId: parseInt(analyzeId),
+                    resultName: result.resultName,
+                },
+                data: {
+                    includeInReport: result.includeInReport
+                },
+            });
+        }
+
+        return res.status(200).json(diagnosis);
+    } catch (error) {
+        console.error("Eroare la salvarea diagnosticului:", error);
+        return res.status(500).json({ error: "Eroare internă la server." });
+    }
+};
+
+
+
 
 export const startMLForAnalyzeId = async (req, res) => {
     const { analyzeId } = req.body;
@@ -273,7 +310,24 @@ export const startMLForAnalyzeId = async (req, res) => {
             parameters: payload
         });
 
-        res.status(200).json(responseFromML.data)
+
+        const mlResults = responseFromML.data.results;
+
+        const savedResults = [];
+
+        for (const result of mlResults) {
+            const saved = await prisma.medical_Analyze_ML_Result.create({
+                data: {
+                    resultName: result.disease,
+                    confirmed: false,
+                    analyze: { connect: { id: analyzeId } }
+                }
+            });
+
+            savedResults.push(saved);
+        }
+
+        res.status(200).json(savedResults);
 
     } catch (error) {
         console.error('Error encountered by ML', error);

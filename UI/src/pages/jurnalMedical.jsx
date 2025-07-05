@@ -239,20 +239,33 @@ const AnalyzeBoard = ({ submitted, title }) => {
                                             <Typography sx={{ my: 1 }}>{analyze.analyzeTitle}</Typography>
                                         </Grid2>
                                         <Grid2 size="auto">
-                                            <Tooltip placement='top' title="In curand unul dintre doctorii nostri va prelua analiza dumneavostra">
+                                            {!analyze.assignedDoctor ?
+                                                <Tooltip placement='top' title="In curand unul dintre doctorii nostri va prelua analiza dumneavostra">
+                                                    <Box sx={{
+                                                        // border: theme => `1px solid ${theme.palette.primary.main}70`,
+                                                        borderRadius: '5px',
+                                                        px: '0.4em',
+                                                        cursor: "pointer",
+                                                        display: "flex",
+                                                        columnGap: ".5em",
+                                                        alignItems: "center"
+                                                    }}>
+                                                        <Typography variant='body2'>Nepreluat</Typography>
+                                                        <InfoIcon sx={{ color: "#3c3c3c40" }} />
+                                                    </Box>
+                                                </Tooltip> :
                                                 <Box sx={{
                                                     // border: theme => `1px solid ${theme.palette.primary.main}70`,
                                                     borderRadius: '5px',
                                                     px: '0.4em',
-                                                    cursor: "pointer",
                                                     display: "flex",
                                                     columnGap: ".5em",
                                                     alignItems: "center"
                                                 }}>
-                                                    <Typography variant='body2'>{analyze.assignedDoctor ? "Preluat de Dr. " + analyze.assignedDoctor?.personalData?.firstName + " " + analyze.assignedDoctor?.personalData?.lastName  : "Nepreluat"}</Typography>
-                                                    <InfoIcon sx={{ color: "#3c3c3c40" }} />
+                                                    <Typography variant='body2'>{"Preluat de Dr. " + analyze.assignedDoctor?.personalData?.firstName + " " + analyze.assignedDoctor?.personalData?.lastName}</Typography>
+                                        
                                                 </Box>
-                                            </Tooltip>
+                                            }
                                         </Grid2>
 
                                     </Grid2>

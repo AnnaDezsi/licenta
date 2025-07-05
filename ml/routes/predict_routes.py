@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
-from ai_models.registry import model_registry
 from concurrent.futures import ThreadPoolExecutor
+
+from ai_models.registry import models
 
 predict_routes = Blueprint("predict_routes", __name__)
 
@@ -15,7 +16,7 @@ def predict():
     def is_model_compatible(model):
         return all(feature in parameters for feature in model.features)
 
-    compatible_models = [m for m in model_registry if is_model_compatible(m)]
+    compatible_models = [m for m in models if is_model_compatible(m)]
 
     if not compatible_models:
         return jsonify({"results": []}), 200

@@ -16,7 +16,6 @@ import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useFormik } from "formik";
-import { v4 as uuidv4 } from 'uuid';
 import { ConfirmationModal } from "../../components/ConfirmationModal/ConfirmationModal";
 
 
@@ -65,7 +64,9 @@ export const Pacient = () => {
   useEffect(() => {
     setAnalizeLoading(true)
     api('analize/' + clientId)
-      .then(res => setAnalize(res.data.map(a => ({ ...a, mlResults: [] }))))
+      .then(res => {
+        setAnalize(res.data.map(a => ({ ...a, mlResults: !!a?.mlResults.length ? a?.mlResults : !!a?.diagnosis ? [] : null })))
+      })
       .catch(err => console.error(err))
       .finally(_ => setAnalizeLoading(false))
   }, [clientId])
@@ -159,7 +160,7 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
       .then(res => {
         const indexCurrent = analize.findIndex(a => a.id === analyzeData.id);
 
-        if (indexCurrent === -1) return; 
+        if (indexCurrent === -1) return;
 
         const newAnalyze = {
           ...analyzeData,
@@ -185,27 +186,41 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
 
     api.post("/analize/mlstart", { analyzeId })
       .then(res => {
-        const newResults = res.data?.results || [];
+        const indexCurrent = analize.findIndex(a => a.id === analyzeData.id);
 
-        setAnalize(prevAnalize => {
-          const updated = [...prevAnalize];
-          updated[currentAnalyze] = {
-            ...updated[currentAnalyze],
-            mlResults: newResults
-          };
-          return updated;
-        });
+        if (indexCurrent === -1) return;
+
+        const newAnalyze = {
+          ...analyzeData,
+          mlResults: res.data || []
+        };
+
+        const updatedAnalize = [
+          ...analize.slice(0, indexCurrent),
+          newAnalyze,
+          ...analize.slice(indexCurrent + 1)
+        ];
+
+        setAnalize(updatedAnalize)
       })
       .catch(error => {
         console.error("Eroare ML:", error);
-        setAnalize(prevAnalize => {
-          const updated = [...prevAnalize];
-          updated[currentAnalyze] = {
-            ...updated[currentAnalyze],
-            mlResults: []
-          };
-          return updated;
-        });
+        const indexCurrent = analize.findIndex(a => a.id === analyzeData.id);
+
+        if (indexCurrent === -1) return;
+
+        const newAnalyze = {
+          ...analyzeData,
+          mlResults: []
+        };
+
+        const updatedAnalize = [
+          ...analize.slice(0, indexCurrent),
+          newAnalyze,
+          ...analize.slice(indexCurrent + 1)
+        ];
+
+        setAnalize(updatedAnalize)
       })
       .finally(() => setMLLoading(false));
   };
@@ -249,7 +264,7 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
                 <Grid2 size="grow"><Typography sx={{ fontStyle: "italic" }} variant="h4">"{analyzeData?.analyzeTitle || ""}"</Typography></Grid2>
                 <Grid2 size="auto">
                   <ConfirmationModal title="Doriti sa preluati analiza?" isOpen={isConfirmationModalOpen} handleClose={() => setIsConfirmationModalOpen(false)} handleConfirm={handleAssignDoctorToPacient} />
-                  <Button disabled={analyzeData?.assignedDoctor} variant="contained" onClick={() => setIsConfirmationModalOpen(true)} size="large">{analyzeData?.assignedDoctor ? "Analiza preluata" : "Preia pacientul"}</Button>
+                  <Button disabled={!!analyzeData?.assignedDoctor} variant="contained" onClick={() => setIsConfirmationModalOpen(true)} size="large">{analyzeData?.assignedDoctor ? analyzeData?.diagnosis ? "Analiza trimisa" : "Analiza preluata" : "Preia pacientul"}</Button>
                 </Grid2>
               </Grid2>
             </Grid2>
@@ -377,16 +392,19 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
                 <Grid2 size={12}>
 
                   <Typography align="center" variant="h6">
-                    {(!analyzeData?.mlResults.length && analyzeData?.assignedDoctor) && "Nu exista analiza inteligenta"}
-                    {(!analyzeData?.mlResults.length && !analyzeData?.assignedDoctor) && "Pentru a initia analiza AI, va rugam sa preluati pacientul"}
-                  </Typography>
-                  {!analyzeData?.mlResults?.length ? <Box sx={{ width: '100%', height: '120px', display: 'flex', alignItems: "center", justifyContent: 'center' }}>
-                    {isMLLoading ?
-                      <CircularProgress size={50} /> :
-                      <Button disabled={!analyzeData?.assignedDoctor} sx={{ py: '1em', px: '2em' }} onClick={() => handleBeginMLAnalyze(analyzeData?.id)} variant="contained">Incepe analiza AI</Button>
-                    }
+                    {(!analyzeData?.mlResults && analyzeData?.assignedDoctor && !analyzeData?.diagnosis) && "Nu exista analiza inteligenta"}
+                    {(!analyzeData?.mlResults && !analyzeData?.assignedDoctor && !analyzeData?.diagnosis) && "Pentru a initia analiza AI, va rugam sa preluati pacientul"}
 
-                  </Box> : <ResultForm mlResults={analyzeData?.mlResults || []} />}
+                  </Typography>
+                  {console.log(analyzeData)}
+                  {!analyzeData?.mlResults ?
+                    <Box sx={{ width: '100%', height: '120px', display: 'flex', alignItems: "center", justifyContent: 'center' }}>
+                      {isMLLoading ?
+                        <CircularProgress size={50} /> :
+                        <Button disabled={!analyzeData?.assignedDoctor} sx={{ py: '1em', px: '2em' }} onClick={() => handleBeginMLAnalyze(analyzeData?.id)} variant="contained">Incepe analiza AI</Button>
+                      }
+
+                    </Box> : <ResultForm analyzeData={analyzeData} analize={analize} setAnalize={setAnalize} />}
                 </Grid2>
               </Grid2>
             </Grid2>
@@ -398,27 +416,44 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
   )
 }
 
-const ResultForm = ({ mlResults }) => {
+const ResultForm = ({ analyzeData, analize, setAnalize }) => {
   const formik = useFormik({
     initialValues: {
-      doctorNotes: '',
-      mlResults: mlResults.map(r => ({
-        disease: r.disease,
-        prediction: r.prediction,
-        include: true
+      doctorNote: analyzeData?.diagnosis?.doctorNote || "",
+      mlResults: analyzeData?.mlResults.map(r => ({
+        resultName: r.resultName,
+        includeInReport: r.includeInReport
       }))
     },
+    enableReinitialize: true,
     onSubmit: (values) => {
-      const selectedDiseases = values.mlResults.filter(r => r.include);
-      const payload = {
-        doctorNotes: values.doctorNotes,
-        selectedDiseases
-      };
-      console.log("Payload to submit:", payload);
+      api.post("/analize/diagnosis/" + analyzeData.id, values)
+        .then(res => {
+          const indexCurrent = analize.findIndex(a => a.id === analyzeData.id);
+
+          if (indexCurrent === -1) return;
+
+          const newAnalyze = {
+            ...analyzeData,
+            diagnosis: res.data
+          };
+
+          const updatedAnalize = [
+            ...analize.slice(0, indexCurrent),
+            newAnalyze,
+            ...analize.slice(indexCurrent + 1)
+          ];
+
+          setAnalize(updatedAnalize)
+        })
+        .catch(err => console.error(err));
+
     }
   });
 
-  const { values, handleSubmit, setFieldValue, handleChange } = formik;
+  const { values, handleSubmit, handleChange } = formik;
+
+
 
   return (
     <form onSubmit={handleSubmit}>
@@ -434,25 +469,27 @@ const ResultForm = ({ mlResults }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {values.mlResults.map((row, index) => (
-                  <TableRow key={row.disease}>
-                    <TableCell>{row.disease}</TableCell>
+                {values.mlResults.length ? values.mlResults.map((row, index) => (
+
+                  <TableRow key={row.resultName}>
+                    <TableCell>{row.resultName}</TableCell>
                     <TableCell align="right">
                       {row.prediction ? <CheckIcon /> : <CloseIcon />}
                     </TableCell>
                     <TableCell align="right">
                       <Checkbox
-                        checked={row.include}
-                        onChange={(e) => {
-                          const updated = [...values.mlResults];
-                          updated[index].include = e.target.checked;
-                          setFieldValue('mlResults', updated);
-                        }}
+                        {...formik.getFieldProps(`mlResults[${index}].includeInReport`)}
+                        checked={formik.values.mlResults?.[index]?.includeInReport || false}
+                        disabled={!!analyzeData?.diagnosis}
                         sx={{ '& .MuiSvgIcon-root': { fontSize: 28 } }}
                       />
                     </TableCell>
                   </TableRow>
-                ))}
+                )) :
+                  <TableRow key={1}>
+                    <TableCell colSpan={3}><Typography align="center" variant="body2">Nu exista model bazat pe parametrii introdusi. Va rugam contactati unul dintre admini</Typography></TableCell>
+                  </TableRow>
+                }
               </TableBody>
             </Table>
           </TableContainer>
@@ -460,10 +497,11 @@ const ResultForm = ({ mlResults }) => {
 
         <Grid2 size="grow">
           <TextField
-            name="doctorNotes"
-            value={values.doctorNotes}
+            name="doctorNote"
+            value={values.doctorNote}
             onChange={handleChange}
             fullWidth
+            disabled={!!analyzeData?.diagnosis}
             multiline
             minRows={8}
             placeholder="Completarile doctorului"
@@ -471,11 +509,12 @@ const ResultForm = ({ mlResults }) => {
           />
         </Grid2>
 
-        <Grid2 size={12} sx={{ alignItems: 'center', justifyContent: "center", display: "flex" }}>
-          <Button size="large" type="submit" variant="contained">
+        {!analyzeData?.diagnosis && <Grid2 size={12} sx={{ alignItems: 'center', justifyContent: "center", display: "flex" }}>
+          <Button
+            size="large" type="submit" variant="contained">
             Trimite analiza pacientului
           </Button>
-        </Grid2>
+        </Grid2>}
       </Grid2>
     </form>
 
