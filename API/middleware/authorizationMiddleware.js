@@ -7,11 +7,17 @@ export const authorizeAdmin = (req, res, next) => {
 };
 
 
-export const authorizeDoctor = (req, res, next) => {
-    if (!(req.user?.role === 'DOCTOR' || req.user?.role === 'ADMIN')) {
-        return res.status(403).json({ error: 'Access denied: Doctors only' });
+export const authorizeAdminOrDoctor = (req, res, next) => {
+    
+    const isAdmin = req.user?.role === 'ADMIN';
+    const isDoctor = req.user?.role === 'DOCTOR'
+
+    if (!isAdmin && !isDoctor) {
+        return res.status(403).json({ error: 'Access denied' });
     }
+
     next();
+
 };
 
 export const authorizeUserOrAdmin = (req, res, next) => {

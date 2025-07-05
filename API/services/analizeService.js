@@ -89,7 +89,7 @@ export const createMedicalAnalysis = async (req, res) => {
             analyzeTitle: analyze.analyzeTitle,
             testingDate: analyze.testingDate,
             createdAt: analyze.createdAt,
-            checkedBy: analyze?.assignedDoctor || 'Nepreluat',
+            assignedDoctor: analyze?.assignedDoctor,
             institution: analyze?.institution,
         });
     } catch (error) {
@@ -133,6 +133,12 @@ export const getUserAnalyzesById = async (req, res) => {
                         id: true,
                         email: true,
                         role: true,
+                        personalData: {
+                            select: {
+                                firstName: true,
+                                lastName: true
+                            }
+                        }
                     },
                 },
                 categories: {
@@ -164,6 +170,61 @@ export const getUserAnalyzesById = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const assignDoctorToAnalyze = async (req, res) => {
+    const doctorId = req.user.userId;
+    const { analyzeId } = req.body;
+
+    try {
+        const analyze = await prisma.medical_Analyze.findUnique({
+            where: { id: parseInt(analyzeId) },
+            select: {
+                id: true,
+                assignedDoctor: {
+                    select: { id: true }
+                }
+            }
+        });
+
+        if (!analyze) {
+            return res.status(404).json({ error: "Analiza nu a fost găsită." });
+        }
+
+        if (analyze.assignedDoctor) {
+            return res.status(400).json({ error: "Un doctor a preluat deja analiza pacientului." });
+        }
+
+        const updatedAnalyze = await prisma.medical_Analyze.update({
+            where: { id: parseInt(analyzeId) },
+            data: {
+                assignedDoctor: {
+                    connect: { id: parseInt(doctorId) },
+                },
+            },
+            select: {
+                assignedDoctor: {
+                    select: {
+                        id: true,
+                        email: true,
+                        role: true,
+                        personalData: {
+                            select: {
+                                firstName: true,
+                                lastName: true
+                            }
+                        }
+                    },
+                },
+            },
+        });
+
+        return res.status(200).json(updatedAnalyze);
+    } catch (error) {
+        console.error("Eroare la atribuirea doctorului:", error);
+        return res.status(500).json({ error: "Eroare internă la server." });
+    }
+};
+
 
 
 export const startMLForAnalyzeId = async (req, res) => {

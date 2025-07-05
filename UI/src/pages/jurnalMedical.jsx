@@ -249,7 +249,7 @@ const AnalyzeBoard = ({ submitted, title }) => {
                                                     columnGap: ".5em",
                                                     alignItems: "center"
                                                 }}>
-                                                    <Typography variant='body2'>{analyze.checkedBy || "Nepreluat"}</Typography>
+                                                    <Typography variant='body2'>{analyze.assignedDoctor ? "Preluat de Dr. " + analyze.assignedDoctor?.personalData?.firstName + " " + analyze.assignedDoctor?.personalData?.lastName  : "Nepreluat"}</Typography>
                                                     <InfoIcon sx={{ color: "#3c3c3c40" }} />
                                                 </Box>
                                             </Tooltip>

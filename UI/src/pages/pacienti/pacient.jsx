@@ -1,7 +1,7 @@
 import { useMatches } from "react-router-dom";
 import api from "../../services/axiosConfig"
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, Button, Checkbox, CircularProgress, Collapse, Divider, Grid2, IconButton, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, CircularProgress, Collapse, Divider, Grid2, IconButton, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography } from "@mui/material";
 import { PageContainer } from "../../components/PageContainer/PageContainer";
 import { PageHeader } from "../../components/PageHeader/PageHeader";
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -17,6 +17,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useFormik } from "formik";
 import { v4 as uuidv4 } from 'uuid';
+import { ConfirmationModal } from "../../components/ConfirmationModal/ConfirmationModal";
 
 
 export const Pacient = () => {
@@ -96,12 +97,12 @@ export const Pacient = () => {
           }}>
             <PacientPersonalDataDetails personalData={pacientPersonalData} />
           </Grid2>
-          <Grid2 size={12}>
+          {!!medicamentatie.length && <Grid2 size={12}>
             <Medicamentatie medicamentatie={medicamentatie} />
-          </Grid2>
-          <Grid2 size={12}>
+          </Grid2>}
+          {!!analize.length && <Grid2 size={12}>
             <Analize analize={analize} setAnalize={setAnalize} isAnalizeLoading={isAnalizeLoading} />
-          </Grid2>
+          </Grid2>}
         </Grid2>
       </PageContainer>
     </>
@@ -112,6 +113,7 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
   const [currentAnalyze, setCurrentAnalyze] = useState(0);
   const [isMLLoading, setMLLoading] = useState(false);
   const [isFileDownloaded, setFileDownloaded] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
   const analyzeData = analize[currentAnalyze]
 
@@ -150,6 +152,32 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
     }
   };
 
+  const handleAssignDoctorToPacient = () => {
+    api.post('/analize/assignDoctor', {
+      analyzeId: analyzeData.id
+    })
+      .then(res => {
+        const indexCurrent = analize.findIndex(a => a.id === analyzeData.id);
+
+        if (indexCurrent === -1) return; 
+
+        const newAnalyze = {
+          ...analyzeData,
+          assignedDoctor: res.data
+        };
+
+        const updatedAnalize = [
+          ...analize.slice(0, indexCurrent),
+          newAnalyze,
+          ...analize.slice(indexCurrent + 1)
+        ];
+
+        setAnalize(updatedAnalize)
+
+      })
+      .catch(er => console.error(er))
+      .finally(_ => setIsConfirmationModalOpen(false))
+  }
 
 
   const handleBeginMLAnalyze = (analyzeId) => {
@@ -191,14 +219,12 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
           <Skeleton variant="rounded" animation="wave" sx={{ backgroundColor: '#3c3c3c10', width: '100%', height: '400px' }} /> :
           <Grid2 container direction="column" rowGap={1} sx={{ p: 2 }}>
             <Grid2 size={12}>
-              <Typography>Analize</Typography>
-            </Grid2>
-            <Grid2 size={12}>
-              <Divider />
-            </Grid2>
-            <Grid2 size={12}>
               <Grid2 container alignItems="center">
-                <Grid2 size={8}><Typography variant="h4">{analyzeData?.analyzeTitle || ""}</Typography></Grid2>
+
+                <Grid2 size={8}>
+                  <Typography variant="body1">Analize</Typography>
+                </Grid2>
+
                 <Grid2 size={4}>
                   <Grid2 container justifyContent="flex-end" columnGap={2}>
 
@@ -211,6 +237,19 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
                       <ArrowForwardIosIcon />
                     </IconButton>
                   </Grid2>
+                </Grid2>
+
+              </Grid2>
+            </Grid2>
+            <Grid2 size={12}>
+              <Divider />
+            </Grid2>
+            <Grid2 size={12} sx={{ my: 2 }}>
+              <Grid2 container alignItems="center">
+                <Grid2 size="grow"><Typography sx={{ fontStyle: "italic" }} variant="h4">"{analyzeData?.analyzeTitle || ""}"</Typography></Grid2>
+                <Grid2 size="auto">
+                  <ConfirmationModal title="Doriti sa preluati analiza?" isOpen={isConfirmationModalOpen} handleClose={() => setIsConfirmationModalOpen(false)} handleConfirm={handleAssignDoctorToPacient} />
+                  <Button disabled={analyzeData?.assignedDoctor} variant="contained" onClick={() => setIsConfirmationModalOpen(true)} size="large">{analyzeData?.assignedDoctor ? "Analiza preluata" : "Preia pacientul"}</Button>
                 </Grid2>
               </Grid2>
             </Grid2>
@@ -336,9 +375,16 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
                   <Divider />
                 </Grid2>
                 <Grid2 size={12}>
-                  <Typography align="center" variant="h6">{!analyzeData?.mlResults.length == 0}Nu exista analiza inteligenta</Typography>
+
+                  <Typography align="center" variant="h6">
+                    {(!analyzeData?.mlResults.length && analyzeData?.assignedDoctor) && "Nu exista analiza inteligenta"}
+                    {(!analyzeData?.mlResults.length && !analyzeData?.assignedDoctor) && "Pentru a initia analiza AI, va rugam sa preluati pacientul"}
+                  </Typography>
                   {!analyzeData?.mlResults?.length ? <Box sx={{ width: '100%', height: '120px', display: 'flex', alignItems: "center", justifyContent: 'center' }}>
-                    {isMLLoading ? <CircularProgress size={50} /> : <Button sx={{ py: '1em', px: '2em' }} onClick={() => handleBeginMLAnalyze(analyzeData?.id)} variant="contained">Incepe analiza AI</Button>}
+                    {isMLLoading ?
+                      <CircularProgress size={50} /> :
+                      <Button disabled={!analyzeData?.assignedDoctor} sx={{ py: '1em', px: '2em' }} onClick={() => handleBeginMLAnalyze(analyzeData?.id)} variant="contained">Incepe analiza AI</Button>
+                    }
 
                   </Box> : <ResultForm mlResults={analyzeData?.mlResults || []} />}
                 </Grid2>
@@ -549,7 +595,7 @@ const PacientPersonalData = ({ personalData }) => {
           <Box>
             <Grid2 container>
               <Grid2 size={12}>
-                <Grid2 container alignItems="center" height={42}>
+                <Grid2 container alignItems="center" minHeight={42}>
                   <Grid2 size={{
                     xs: 6
                   }}>
@@ -576,7 +622,7 @@ const PacientPersonalData = ({ personalData }) => {
               </Grid2>
 
               <Grid2 size={12}>
-                <Grid2 container alignItems="center" height={42}><Grid2 size={{
+                <Grid2 container alignItems="center" minHeight={42}><Grid2 size={{
                   xs: 6
                 }}>
                   <Typography>Varsta:</Typography>
@@ -590,7 +636,7 @@ const PacientPersonalData = ({ personalData }) => {
               </Grid2>
 
               <Grid2 size={12}>
-                <Grid2 container alignItems="center" height={42}><Grid2 size={{
+                <Grid2 container alignItems="center" minHeight={42}><Grid2 size={{
                   xs: 6
                 }}>
                   <Typography>Sex:</Typography>
@@ -605,7 +651,7 @@ const PacientPersonalData = ({ personalData }) => {
 
 
               <Grid2 size={12}>
-                <Grid2 container alignItems="center" height={42}><Grid2 size={{
+                <Grid2 container alignItems="center" minHeight={42}><Grid2 size={{
                   xs: 6
                 }}>
                   <Typography>Numar de telefon:</Typography>
@@ -619,7 +665,7 @@ const PacientPersonalData = ({ personalData }) => {
               </Grid2>
 
               <Grid2 size={12}>
-                <Grid2 container alignItems="center" height={42}><Grid2 size={{
+                <Grid2 container alignItems="center" minHeight={42}><Grid2 size={{
                   xs: 6
                 }}>
                   <Typography>Adresa:</Typography>
@@ -655,7 +701,7 @@ const PacientPersonalDataDetails = ({ personalData }) => {
         <Grid2 size={12}>
           <Grid2 container >
             <Grid2 size={12}>
-              <Grid2 container alignItems="center" height={42}><Grid2 size={{
+              <Grid2 container alignItems="center" minHeight={42}><Grid2 size={{
                 xs: 6
               }}>
                 <Typography>Fumator:</Typography>
@@ -668,7 +714,7 @@ const PacientPersonalDataDetails = ({ personalData }) => {
               </Grid2>
             </Grid2>
             {displayGender(personalData?.cnp) === "F" && <><Grid2 size={12}>
-              <Grid2 container alignItems="center" height={42}><Grid2 size={{
+              <Grid2 container alignItems="center" minHeight={42}><Grid2 size={{
                 xs: 6
               }}>
                 <Typography>Sarcina activa:</Typography>
@@ -681,7 +727,7 @@ const PacientPersonalDataDetails = ({ personalData }) => {
               </Grid2>
             </Grid2>
               <Grid2 size={12}>
-                <Grid2 container alignItems="center" height={42}><Grid2 size={{
+                <Grid2 container alignItems="center" minHeight={42}><Grid2 size={{
                   xs: 6
                 }}>
                   <Typography>Numar de sarcini</Typography>
@@ -695,7 +741,7 @@ const PacientPersonalDataDetails = ({ personalData }) => {
               </Grid2></>}
 
             <Grid2 size={12}>
-              <Grid2 container alignItems="center" height={42}><Grid2 size={{
+              <Grid2 container alignItems="center" minHeight={42}><Grid2 size={{
                 xs: 6
               }}>
                 <Typography>Diabet</Typography>
