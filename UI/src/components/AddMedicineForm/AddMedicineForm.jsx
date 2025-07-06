@@ -93,7 +93,7 @@ export const AddMedicineForm = () => {
     return (
         <form onSubmit={medicalJournalForm.handleSubmit}>
             <TextField
-                label="Nume Medicamentatie"
+                label="Nume tratament"
                 variant="standard"
                 placeholder="Salvează un nume pentru această intrare în jurnal (Ex.: Dureri de spate)"
                 fullWidth

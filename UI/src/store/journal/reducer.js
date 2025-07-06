@@ -1,4 +1,4 @@
-import { SET_INITIAL_MEDS, RESET_JOURNAL, ADD_MED, SET_ANALYZE_CATEGORIES, SET_INITIAL_ANALYSES, ADD_ANALYZE    } from './action'
+import { SET_INITIAL_MEDS, RESET_JOURNAL, ADD_MED, SET_ANALYZE_CATEGORIES, SET_INITIAL_ANALYSES, ADD_ANALYZE, UPDATE_ANALYZE    } from './action'
 
 const initialState = {
     medicamentatie: {
@@ -93,6 +93,35 @@ const journalReducer = (state = initialState, action) => {
 
                 }
             }
+        }
+
+        case UPDATE_ANALYZE:{
+            const analyzeId = action.payload.id;
+            if(!analyzeId){
+                return state;
+            }
+
+            const analyzeIndex = state.analyzes.submitted.findIndex(a => a.id === analyzeId);
+            if(analyzeIndex === -1){
+                return state;
+            }
+
+            const allAnalyzes = state.analyzes.submitted;
+
+            const newSubmitted = [
+                ...allAnalyzes.slice(0, analyzeIndex),
+                {...state.analyzes.submitted[analyzeIndex], ...action.payload},
+                ...allAnalyzes.slice(analyzeIndex + 1)
+            ]
+
+            return {
+                ...state,
+                analyzes:{
+                    ...state.analyzes,
+                    submitted: newSubmitted
+                }
+            }
+
         }
 
 

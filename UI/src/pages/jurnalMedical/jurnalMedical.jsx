@@ -1,24 +1,26 @@
 import { useEffect, useState } from 'react'
-import { PageContainer } from '../components/PageContainer/PageContainer'
-import { PageHeader } from '../components/PageHeader/PageHeader'
-import { Box, Button, Collapse, Divider, Grid2, IconButton, List, ListItem, Paper, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from '@mui/material'
+// import { PageContainer } from '../components/PageContainer/PageContainer'
+import { PageHeader } from '../../components/PageHeader/PageHeader'
+import { Box, Button, Collapse, Divider, Grid2, IconButton, List, ListItem, Paper, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, Typography } from '@mui/material'
 import BiotechIcon from '@mui/icons-material/Biotech';
 import MedicationIcon from '@mui/icons-material/Medication';
 import CloseIcon from '@mui/icons-material/Close';
-import { AddMedicineForm } from '../components/AddMedicineForm/AddMedicineForm'
+import { AddMedicineForm } from '../../components/AddMedicineForm/AddMedicineForm'
 import { v4 as uuidv4 } from 'uuid';
-import api from '../services/axiosConfig';
-import { DateUtils } from '../utilities/DateUtils'
-import { AddAnalyzeForm } from '../components/AddAnalyzeForm/AddAnalyzeForm'
+import api from '../../services/axiosConfig';
+import { DateUtils } from '../../utilities/DateUtils'
+import { AddAnalyzeForm } from '../../components/AddAnalyzeForm/AddAnalyzeForm'
 import { useDispatch, useSelector } from 'react-redux';
-import { getAnalyzes, getMedicamentation } from '../store/journal/selectors';
-import { resetJournal, setInitialAnalyzes, setInitialMeds } from '../store/journal/action';
-import { personalDataSelector } from '../store/auth/selectors';
+import { getAnalyzes, getMedicamentation } from '../../store/journal/selectors';
+import { resetJournal, setInitialAnalyzes, setInitialMeds } from '../../store/journal/action';
+import { personalDataSelector } from '../../store/auth/selectors';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import InfoIcon from '@mui/icons-material/Info';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { ConfirmationModal } from '../components/ConfirmationModal/ConfirmationModal';
+import { ConfirmationModal } from '../../components/ConfirmationModal/ConfirmationModal';
+import { PageContainer } from '../../components/PageContainer/PageContainer';
+import { Outlet, useMatches, useNavigate } from 'react-router-dom';
 
 export const JurnalMedical = () => {
     const [uploadNewAnalyzes, setUploadNewAnalyzes] = useState(false)
@@ -27,9 +29,8 @@ export const JurnalMedical = () => {
     const { activeMeds, retroMeds } = useSelector(getMedicamentation);
     const { submitted } = useSelector(getAnalyzes);
 
-    console.log('ameds', activeMeds);
-    console.log('retmeds', retroMeds);
 
+    const match = useMatches(['/jurnal-medical']);
 
     const userId = useSelector(personalDataSelector)?.userId
 
@@ -74,6 +75,10 @@ export const JurnalMedical = () => {
         }
     }
 
+    if(match.length > 1 && !!match[1]?.params?.analyzeId){
+        return <Outlet />
+    }
+
     return (
         <>
             <Box sx={{ width: 1, backgroundColor: theme => `${theme.palette.primary.main}20`, padding: '2em 0' }}>
@@ -112,7 +117,7 @@ export const JurnalMedical = () => {
                             }} onClick={() => handleOpenAnalyzeOrJournal('JOURNAL')}>
                                 <MedicationIcon sx={{ fontSize: '34px' }} />
                                 <Typography variant='h6' fontWeight={400}>
-                                    Incarca medicamentatie
+                                    Incarca tratament
                                 </Typography>
                             </Button>
                         </Grid2>
@@ -151,7 +156,7 @@ export const JurnalMedical = () => {
                                 <Grid2 container alignItems="center" display="flex" sx={{ mb: 2 }}>
                                     <Grid2 size="grow">
                                         <Typography>
-                                            Adauga medicamentatia consumata in perioada unui tratament
+                                            Adauga un tratament nou
                                         </Typography>
                                     </Grid2>
                                     <Grid2 size="auto">
@@ -177,13 +182,13 @@ export const JurnalMedical = () => {
                         xs: 12,
                         xl: 4
                     }}>
-                        <MedicBoard medicamentatie={activeMeds} title="Medicamentatie activa" />
+                        <MedicBoard medicamentatie={activeMeds} title="Tratament activ" />
                     </Grid2>
                     <Grid2 size={{
                         xs: 12,
                         xl: 4
                     }}>
-                        <MedicBoard medicamentatie={retroMeds} title="Medicamentatie anterioara" />
+                        <MedicBoard medicamentatie={retroMeds} title="Tratament anterior" />
 
                     </Grid2>
 
@@ -223,24 +228,25 @@ const AnalyzeBoard = ({ submitted, title }) => {
     )
 }
 
-const AnalyzeCard = ({ analyze, amount,  index }) => {
+const AnalyzeCard = ({ analyze, amount, index }) => {
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     const datePersonale = useSelector(personalDataSelector);
     const { submitted } = useSelector(getAnalyzes);
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const handleDeleteAnalyze = (analyzeId) => {
         api.delete('/analize/' + datePersonale.userId + "/" + analyzeId)
-        .then(res => {
-            if(res.status === 200){
-                const filtered = submitted.filter(a => a.id !== analyze.id);
-                console.log(filtered)
-                dispatch(setInitialAnalyzes(filtered))
-            }
-        })
-        .catch(err => console.error(err))
-        .finally(_ => setConfirmingDelete(false))
+            .then(res => {
+                if (res.status === 200) {
+                    const filtered = submitted.filter(a => a.id !== analyze.id);
+                    console.log(filtered)
+                    dispatch(setInitialAnalyzes(filtered))
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(_ => setConfirmingDelete(false))
     }
 
 
@@ -300,7 +306,7 @@ const AnalyzeCard = ({ analyze, amount,  index }) => {
                                         </Box>
                                     </Tooltip> :
                                     <Box sx={{
-                                            borderRadius: '5px',
+                                        borderRadius: '5px',
                                         px: '0.4em',
                                         display: "flex",
                                         columnGap: ".5em",
@@ -348,7 +354,9 @@ const AnalyzeCard = ({ analyze, amount,  index }) => {
                 <Grid2 container flexDirection="column" alignItems="center">
                     <Grid2 size={12}>
                         <Tooltip placement='right' title="Deschide analiza intr-o fereastra noua">
-                            <IconButton sx={{
+                            <IconButton 
+                            onClick={() => navigate('/jurnal-medical/' + analyze.id)}
+                            sx={{
                                 border: theme => `2px solid transparent`,
                                 borderRadius: "0px",
                                 width: '100%',
