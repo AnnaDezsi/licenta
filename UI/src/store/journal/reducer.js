@@ -47,6 +47,7 @@ const journalReducer = (state = initialState, action) => {
 
         case ADD_MED: {
             const med = action.payload;
+            
             const { activeMeds, retroMeds } = splitMedsBasedOnDate([med])
             return {
                 ...state,
@@ -74,7 +75,6 @@ const journalReducer = (state = initialState, action) => {
         }
 
         case SET_INITIAL_ANALYSES: {
-            console.log("called")
             return {
                 ...state,
                 analyzes: {

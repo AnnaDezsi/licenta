@@ -23,7 +23,6 @@ export const createMedicamentatie = async (req, res) => {
         name: name || new Date(startDate).toDateString(),
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        quantity: 0,
         userId,
       },
     });
@@ -55,21 +54,18 @@ export const createMedicamentatie = async (req, res) => {
       },
     });
 
-    const response = {
-      id: medicamentatie.id,
-      name: medicamentatie.name,
-      startDate: medicamentatie.startDate,
-      endDate: medicamentatie.endDate,
-      medicines: linked.map(link => ({
-        name: link.medicament.name,
-        quantity: link.quantity,
-      })),
-    };
-
-    res.status(201).json({
-      message: "Medicamentatie adaugata cu succes!",
-      data: response,
+    const medicamentatieWithRelations = await prisma.medicamentatie.findUnique({
+      where: { id: medicamentatie.id },
+      include: {
+        medicamenteLinks: {
+          include: {
+            medicament: true,
+          },
+        },
+      },
     });
+
+    res.status(201).json(medicamentatieWithRelations);
   } catch (error) {
     console.error("Eroare la crearea medicamentatiei:", error);
     res.status(500).json({

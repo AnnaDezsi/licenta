@@ -8,7 +8,6 @@ export const AnalyzeDetails = ({
     doctor
 }) => {
 
-    console.log(testingDate, createdAt, institution )
     if(!testingDate || !createdAt || !institution){
         return null;
     }

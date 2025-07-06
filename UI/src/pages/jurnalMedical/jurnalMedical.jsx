@@ -241,7 +241,6 @@ const AnalyzeCard = ({ analyze, amount, index }) => {
             .then(res => {
                 if (res.status === 200) {
                     const filtered = submitted.filter(a => a.id !== analyze.id);
-                    console.log(filtered)
                     dispatch(setInitialAnalyzes(filtered))
                 }
             })
@@ -368,7 +367,6 @@ const AnalyzeCard = ({ analyze, amount, index }) => {
                     </Grid2>
                     <Grid2 size={12}>
                         <ConfirmationModal title='Doriti sa stergeti analiza aceasta?' isOpen={confirmingDelete} handleClose={() => setConfirmingDelete(false)} handleConfirm={() => handleDeleteAnalyze(analyze.id)}>
-                            {console.log(analyze)}
                             <Typography>{analyze.analyzeTitle}</Typography>
                         </ConfirmationModal>
                         <Tooltip placement='right' title="Sterge analiza">
@@ -442,7 +440,7 @@ const MedicBoard = ({ medicamentatie, title }) => {
                                         <Table sx={{ p: 0 }}>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell sx={{ p: 0, width: "calc(100% - 50px)", border: "none" }}><Typography variant='body2'>{med?.medicamenteLinks.length} medicamente</Typography> </TableCell>
+                                                    <TableCell sx={{ p: 0, width: "calc(100% - 50px)", border: "none" }}><Typography variant='body2'>{med?.medicamenteLinks.length || 0} medicamente</Typography> </TableCell>
                                                     <TableCell sx={{ p: 0, width: "50px", border: "none" }}>
                                                         <IconButton sx={{ border: theme => `1px solid ${theme.palette.primary.main}20`, borderRadius: "50px" }} onClick={() => toggleRow(med.id)}>
                                                             <ExpandMoreIcon sx={{ transform: openRows[med.id] && "rotate(180deg)" }} />

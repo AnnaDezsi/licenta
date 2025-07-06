@@ -7,6 +7,7 @@ import api from '../../services/axiosConfig';
 import { useDispatch } from 'react-redux';
 import { setAuthPersonalData } from '../../store/auth/action';
 import * as Yup from 'yup';
+import { displayGender } from '../../pages/datePersonale';
 
 const validationSchema = Yup.object({
     cnp: Yup.string()
@@ -40,7 +41,8 @@ export const PersonalDataModal = ({ isOpen = false, setModalOpen }) => {
             details: {
                 fumator: false,
                 sarcinaActiva: false,
-                diabet: false
+                diabet: false,
+                nrSarciniAnterioare: 0,
             }
         },
         validationSchema,
@@ -157,7 +159,7 @@ export const PersonalDataModal = ({ isOpen = false, setModalOpen }) => {
                                 }}
                             />
                         </Grid2>
-                        <Grid2 sx={{marginTop: 2}} size={{
+                        <Grid2 sx={{ marginTop: 2 }} size={{
                             xs: 12,
                             md: "grow"
                         }}>
@@ -168,38 +170,48 @@ export const PersonalDataModal = ({ isOpen = false, setModalOpen }) => {
                             }}>
 
                                 <Typography variant="body2">Detalii </Typography>
-                                <Grid2 container>
+                                <Grid2 container rowGap={2}>
+                                    <Grid2 size={12}>
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    {...formik.getFieldProps('details.fumator')}
+                                                    checked={formik.values.details.fumator}
+                                                />
+                                            }
+                                            label="Fumător"
+                                        />
+                                    </Grid2>
 
+                                    {displayGender(formik.values.cnp) === "F" && <Grid2 size={12}>
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    {...formik.getFieldProps('details.sarcinaActiva')}
+                                                    checked={formik.values.details.sarcinaActiva}
+                                                />
+                                            }
+                                            label="Sarcină activă"
+                                        />
+                                    </Grid2>}
 
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                {...formik.getFieldProps('details.fumator')}
-                                                checked={formik.values.details.fumator}
-                                            />
-                                        }
-                                        label="Fumător"
-                                    />
-
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                {...formik.getFieldProps('details.sarcinaActiva')}
-                                                checked={formik.values.details.sarcinaActiva}
-                                            />
-                                        }
-                                        label="Sarcină activă"
-                                    />
-
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                {...formik.getFieldProps('details.diabet')}
-                                                checked={formik.values.details.diabet}
-                                            />
-                                        }
-                                        label="Diabet"
-                                    />
+                                    <Grid2 size={12}>
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    {...formik.getFieldProps('details.diabet')}
+                                                    checked={formik.values.details.diabet}
+                                                />
+                                            }
+                                            label="Diabet"
+                                        />
+                                    </Grid2>
+                                    {
+                                        displayGender(formik.values.cnp) === "F" && <Grid2 size={12}>
+                                            <TextField type="number"
+                                                {...formik.getFieldProps('details.nrSarciniAnterioare')} label="Numar de sarcini anterioare" fullWidth />
+                                        </Grid2>
+                                    }
                                 </Grid2>
                             </Box>
                         </Grid2>

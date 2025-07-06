@@ -115,8 +115,8 @@ export const getUserAnalyzeDataById = async (req, res) => {
                 institution: true,
                 doctor: true,
                 notes: true,
-                user:{
-                    select:{
+                user: {
+                    select: {
                         id: true
                     }
                 },
@@ -169,7 +169,7 @@ export const getUserAnalyzeDataById = async (req, res) => {
     } catch (error) {
         console.error('Eroare la crearea analizei medicale:', error);
         res.status(500).json({
-            error: 'Nu s-au putut agrega datele introduse de dumneavoastra pentru analiza cu id: ' + analyzeId ,
+            error: 'Nu s-au putut agrega datele introduse de dumneavoastra pentru analiza cu id: ' + analyzeId,
         });
     }
 }
@@ -184,7 +184,7 @@ export const getUserAnalyzeDiagnosisById = async (req, res) => {
                 id: true,
                 diagnosis: true,
                 user: {
-                    select:{
+                    select: {
                         id: true
                     }
                 },
@@ -201,14 +201,12 @@ export const getUserAnalyzeDiagnosisById = async (req, res) => {
             mlResults: myAnalyzeData.mlResults.filter(r => r.includeInReport)
         }
 
-        console.log(myAnalyzeData);
-        
 
         return res.status(200).json(payload);
     } catch (error) {
         console.error('Eroare la crearea analizei medicale:', error);
         res.status(500).json({
-            error: 'Nu s-au putut agrega datele introduse de dumneavoastra pentru analiza cu id: ' + analyzeId ,
+            error: 'Nu s-au putut agrega datele introduse de dumneavoastra pentru analiza cu id: ' + analyzeId,
         });
     }
 }

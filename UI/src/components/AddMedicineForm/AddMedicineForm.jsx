@@ -59,12 +59,13 @@ export const AddMedicineForm = () => {
 
         onSubmit: async (values) => {
             api.post("/medicamentatie", values)
-            .then(res => dispatch(addMed(res.data.data)))
+            .then(res => dispatch(addMed(res.data)))
             .catch(err => {
                 if(err?.status === 409){
                     medicalJournalForm.setErrors({"name": err?.response?.data?.error})
                 }
             })
+            .finally(_ => medicalJournalForm.resetForm())
         },
     });
 
