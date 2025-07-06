@@ -123,7 +123,7 @@ export const AddAnalyzeForm = () => {
                     }
                 })
                     .then(res => {
-                        
+
 
                         dispatch(addAnalyze(res.data))
                     })
@@ -245,6 +245,16 @@ export const AddAnalyzeForm = () => {
     const changeAnalyzeParameter = (newValue, actionMeta, index, paramIndex) => {
         if (actionMeta.action !== 'select-option') return
         analyzesForm.setFieldValue(`categories[${index}].parameters[${paramIndex}].name`, newValue.value)
+
+        const categoryName = analyzesForm.values.categories[index]?.name || "";
+        
+        const parameters = categoriiMedicale.find(cat => cat.name === categoryName)?.parameters || [];
+
+        const min_value = parameters.find(p => p.name === newValue.value)?.min_val || 0;
+
+
+        analyzesForm.setFieldValue(`categories[${index}].parameters[${paramIndex}].value`, min_value)
+
     }
 
 
@@ -338,6 +348,7 @@ export const AddAnalyzeForm = () => {
                                     timezone="Europe/Bucharest"
                                     onChange={(value) => analyzesForm.setFieldValue("testingDate", value, true)}
                                     value={analyzesForm.values.testingDate}
+                                    maxDate={dayjs()}
                                     slotProps={{
                                         textField: {
                                             error: Boolean(analyzesForm.touched.testingDate) && Boolean(analyzesForm.errors.testingDate),
@@ -435,7 +446,7 @@ export const AddAnalyzeForm = () => {
                                                             </Grid2>
                                                             <Grid2 size="grow">
                                                                 <Typography variant='body2' textAlign="right" color={
-                                                                    (analyzesForm.touched?.categories?.[index]?.parameters?.[paramIndex]?.value && Boolean(analyzesForm.errors?.categories?.[index]?.parameters?.[paramIndex]?.value)) &&
+                                                                    (!!analyzesForm.touched?.categories?.[index]?.parameters?.[paramIndex]?.value && Boolean(analyzesForm.errors?.categories?.[index]?.parameters?.[paramIndex]?.value)) &&
                                                                     "error"
                                                                 }>
                                                                     Min: {min_val} - Max: {max_val}

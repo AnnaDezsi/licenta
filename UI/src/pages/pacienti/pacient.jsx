@@ -301,7 +301,6 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
                     {(!analyzeData?.mlResults && !analyzeData?.assignedDoctor && !analyzeData?.diagnosis) && "Pentru a initia analiza AI, va rugam sa preluati pacientul"}
 
                   </Typography>
-                  {console.log(analyzeData)}
                   {!analyzeData?.mlResults ?
                     <Box sx={{ width: '100%', height: '120px', display: 'flex', alignItems: "center", justifyContent: 'center' }}>
                       {isMLLoading ?

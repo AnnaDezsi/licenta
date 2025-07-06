@@ -73,7 +73,7 @@ model Article {
 model FileS3 {
   id          Int      @id @default(autoincrement())
   name        String
-  key         String 
+  key         String  @unique
   uploaderId  Int
   uploadedAt  DateTime @default(now())
   isDeleted   Boolean  @default(false)
@@ -99,7 +99,6 @@ model Medicamentatie {
   startDate DateTime @db.Timestamp()
   endDate   DateTime @db.Timestamp()
 
-  quantity  Int
   userId    Int
   user      User     @relation("UserMedicamentatie", fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
