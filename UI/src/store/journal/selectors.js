@@ -14,9 +14,14 @@ export const getMedicamentation = createSelector(
 
 export const getAnalyzes = createSelector(
     [getMedicalJournal],
-    journal => journal.analyzes
+    journal => journal?.analyzes || {categoriiMedicale: [], submitted: []}
 )
 
+
+export const getAnalyzeById = (analyzeId) => createSelector(
+    [getAnalyzes],
+    analyzes => analyzes?.submitted.find(a => a.id === analyzeId)
+)
 
 
 

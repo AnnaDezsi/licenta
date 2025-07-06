@@ -85,14 +85,12 @@ export const createMedicalAnalysis = async (req, res) => {
             }
         }
 
-        console.log("cacatul asta o fost apelat")
         return res.status(201).json({
             id: analyze.id,
             analyzeTitle: analyze.analyzeTitle,
             testingDate: analyze.testingDate,
             createdAt: analyze.createdAt,
-            assignedDoctor: analyze?.assignedDoctor,
-            institution: analyze?.institution,
+            assignedDoctor: analyze?.assignedDoctor
         });
     } catch (error) {
         console.error('Eroare la crearea analizei medicale:', error);
@@ -102,13 +100,122 @@ export const createMedicalAnalysis = async (req, res) => {
     }
 };
 
-export const getUserAnalyzeById = async (req, res) => {
+export const getUserAnalyzeDataById = async (req, res) => {
+    const { userId, analyzeId } = req.params;
+    try {
+        const myAnalyzeData = await prisma.medical_Analyze.findUnique({
+            where: {
+                id: parseInt(analyzeId)
+            },
+            select: {
+                id: true,
+                analyzeTitle: true,
+                testingDate: true,
+                createdAt: true,
+                institution: true,
+                doctor: true,
+                notes: true,
+                user:{
+                    select:{
+                        id: true
+                    }
+                },
+                file: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
 
+                assignedDoctor: {
+                    select: {
+                        id: true,
+                        email: true,
+                        role: true,
+                        personalData: {
+                            select: {
+                                firstName: true,
+                                lastName: true
+                            }
+                        }
+                    },
+                },
+                categories: {
+                    include: {
+                        category: true,
+                    },
+                },
+                results: {
+                    include: {
+                        parameter: {
+                            select: {
+                                name: true,
+                                ro_l18n: true,
+                                unit: true,
+                                type: true,
+                                medicalCategoryId: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (myAnalyzeData.user.id !== parseInt(userId)) {
+            return res.status(401).json({ message: "Nu aveti acces la aceasta analiza" })
+        }
+
+        return res.status(200).json(myAnalyzeData);
+    } catch (error) {
+        console.error('Eroare la crearea analizei medicale:', error);
+        res.status(500).json({
+            error: 'Nu s-au putut agrega datele introduse de dumneavoastra pentru analiza cu id: ' + analyzeId ,
+        });
+    }
+}
+export const getUserAnalyzeDiagnosisById = async (req, res) => {
+    const { userId, analyzeId } = req.params;
+    try {
+        const myAnalyzeData = await prisma.medical_Analyze.findUnique({
+            where: {
+                id: parseInt(analyzeId)
+            },
+            select: {
+                id: true,
+                diagnosis: true,
+                user: {
+                    select:{
+                        id: true
+                    }
+                },
+                mlResults: true
+            }
+        });
+
+        if (myAnalyzeData.userId === parseInt(userId)) {
+            return res.status(401).json({ message: "Nu aveti acces la aceasta analiza" })
+        }
+
+        const payload = {
+            ...myAnalyzeData,
+            mlResults: myAnalyzeData.mlResults.filter(r => r.includeInReport)
+        }
+
+        console.log(myAnalyzeData);
+        
+
+        return res.status(200).json(payload);
+    } catch (error) {
+        console.error('Eroare la crearea analizei medicale:', error);
+        res.status(500).json({
+            error: 'Nu s-au putut agrega datele introduse de dumneavoastra pentru analiza cu id: ' + analyzeId ,
+        });
+    }
 }
 
 export const deleteUserAnalyzeById = async (req, res) => {
     const { userId, analyzeId } = req.params;
-    const {role} = req.user;
+    const { role } = req.user;
 
     if (!userId || !analyzeId) {
         return res.status(400).json({ error: "Missing userId or analyzeId" });
@@ -132,7 +239,7 @@ export const deleteUserAnalyzeById = async (req, res) => {
             where: { id: parseInt(analyzeId) },
         });
 
-        return res.status(200).json({message: "deleted"})
+        return res.status(200).json({ message: "deleted" })
     } catch (error) {
         console.error('Eroare la stergerea analizei medicale:', error);
         return res.status(500).json({
@@ -162,12 +269,12 @@ export const getUserAnalyzesById = async (req, res) => {
                 analyzeTitle: true,
                 testingDate: true,
                 createdAt: true,
-                institution: true,
-                doctor: true,
-                notes: true,
-                diagnosis: true,
+                institution: (role === "DOCTOR" || role === 'ADMIN'),
+                doctor: role === "DOCTOR" || role === 'ADMIN',
+                notes: role === "DOCTOR" || role === 'ADMIN',
+                diagnosis: role === "DOCTOR" || role === 'ADMIN',
                 mlResults: role === "DOCTOR" || role === 'ADMIN',
-                file: {
+                file: (role === "DOCTOR" || role === 'ADMIN') && {
                     select: {
                         id: true,
                         name: true
@@ -187,12 +294,12 @@ export const getUserAnalyzesById = async (req, res) => {
                         }
                     },
                 },
-                categories: {
+                categories: (role === "DOCTOR" || role === 'ADMIN') && {
                     include: {
                         category: true,
                     },
                 },
-                results: {
+                results: (role === "DOCTOR" || role === 'ADMIN') && {
                     include: {
                         parameter: {
                             select: {

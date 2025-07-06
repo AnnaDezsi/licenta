@@ -6,7 +6,6 @@ import { ProtectedLayout } from '../components/ProtectedLayout/ProtectedLayout';
 import { Signup } from '../pages/signup';
 import { UnprotectedLayout } from '../components/UnprotectedLayout/UnprotectedLayout';
 import { DatePersonale } from '../pages/datePersonale';
-import { JurnalMedical } from '../pages/jurnalMedical';
 import { Informatii } from '../pages/informatii/informatii';
 import { Categorii } from '../pages/informatii/categorii';
 import { Article } from '../pages/informatii/article';
@@ -14,6 +13,8 @@ import { Pacienti } from '../pages/pacienti/pacienti';
 import { Users } from '../pages/users/users';
 import { User } from '../pages/users/user';
 import { Pacient } from '../pages/pacienti/pacient';
+import { JurnalMedical } from '../pages/jurnalMedical/jurnalMedical';
+import { Analiza } from '../pages/jurnalMedical/analiza';
 
 export const USER_ROLE = {
   ADMIN: 'ADMIN',
@@ -51,7 +52,15 @@ export const protectedRoutes = [
     path: "/jurnal-medical",
     name: "Jurnal medical",
     role: [USER_ROLE.CLIENT],
-    element: <JurnalMedical />
+    element: <JurnalMedical />,
+    children: [
+      {
+        path: ":analyzeId",
+        name: "Analiza",
+        role: [USER_ROLE.CLIENT],
+        element: <Analiza/>
+      }
+    ]
   },  
   {
     path: "/utilizatori",

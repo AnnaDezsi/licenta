@@ -1,6 +1,6 @@
 import { useMatches } from "react-router-dom";
 import api from "../../services/axiosConfig"
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Checkbox, CircularProgress, Collapse, Divider, Grid2, IconButton, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography } from "@mui/material";
 import { PageContainer } from "../../components/PageContainer/PageContainer";
 import { PageHeader } from "../../components/PageHeader/PageHeader";
@@ -12,11 +12,13 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useFormik } from "formik";
 import { ConfirmationModal } from "../../components/ConfirmationModal/ConfirmationModal";
+import { ParametersRegisteredValues } from "../../components/ParametersRegisteredValues";
+import { AnalyzeDetails } from "../../components/AnalyzeDetails";
+import { AnalyzeComplitions } from "../../components/AnalyzeCompletions";
 
 
 export const Pacient = () => {
@@ -113,7 +115,6 @@ export const Pacient = () => {
 const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
   const [currentAnalyze, setCurrentAnalyze] = useState(0);
   const [isMLLoading, setMLLoading] = useState(false);
-  const [isFileDownloaded, setFileDownloaded] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
   const analyzeData = analize[currentAnalyze]
@@ -127,31 +128,6 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
     if (currentAnalyze === 0) return;
     setCurrentAnalyze(prev => prev - 1);
   }
-
-
-  const handleDownloadFile = async (fileId, fileName) => {
-    try {
-      const response = await api.get(`/file/${fileId}`, {
-        responseType: 'blob',
-      });
-
-      const blob = new Blob([response.data]);
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName || 'downloaded_file';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      setFileDownloaded(true)
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      alert('Failed to download file.');
-    }
-  };
 
   const handleAssignDoctorToPacient = () => {
     api.post('/analize/assignDoctor', {
@@ -281,44 +257,12 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
                     <Divider />
                   </Grid2>
                   <Grid2 size={12}>
-                    <Grid2 container>
-                      <Grid2 size={6} minHeight={32}>
-                        <Typography variant="body2">Data testarii:</Typography>
-                      </Grid2>
-                      <Grid2 size={6}>
-                        <Typography variant="body2">{DateUtils.formatDate(analyzeData?.testingDate)}</Typography>
-                      </Grid2>
-                    </Grid2>
-                  </Grid2>
-                  <Grid2 size={12} minHeight={32}>
-                    <Grid2 container>
-                      <Grid2 size={6}>
-                        <Typography variant="body2">Data inregistrare analiza:</Typography>
-                      </Grid2>
-                      <Grid2 size={6}>
-                        <Typography variant="body2">{DateUtils.formatDate(analyzeData?.createdAt)}</Typography>
-                      </Grid2>
-                    </Grid2>
-                  </Grid2>
-                  <Grid2 size={12} minHeight={32}>
-                    <Grid2 container>
-                      <Grid2 size={6}>
-                        <Typography variant="body2">Institutia de recoltare:</Typography>
-                      </Grid2>
-                      <Grid2 size={6}>
-                        <Typography variant="body2">{analyzeData?.institution || ""}</Typography>
-                      </Grid2>
-                    </Grid2>
-                  </Grid2>
-                  <Grid2 size={12} minHeight={32}>
-                    <Grid2 container>
-                      <Grid2 size={6}>
-                        <Typography variant="body2">Nume doctor:</Typography>
-                      </Grid2>
-                      <Grid2 size={6}>
-                        <Typography variant="body2">{analyzeData?.doctor || ""}</Typography>
-                      </Grid2>
-                    </Grid2>
+                    <AnalyzeDetails 
+                      testingDate={analyzeData?.testingDate}
+                      createdAt={analyzeData?.createdAt}
+                      institution={analyzeData?.institution}
+                      doctor={analyzeData?.doctor}
+                    />
                   </Grid2>
                 </Grid2>
 
@@ -330,35 +274,7 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
                     <Typography>Valori</Typography>
                   </Grid2>
                   <Grid2 size={12}>
-                    {analyzeData?.categories.map((category, index) => {
-                      const results = analyzeData?.results.filter(res => res?.parameter?.medicalCategoryId === category.categoryId)
-                      return (
-                        <Box key={category.id} sx={{
-                          backgroundColor: theme => `${theme.palette.primary.main}30`,
-                          p: 1,
-                          borderRadius: '5px',
-                          mb: index === analyzeData?.categories.length - 1 ? 0 : 1
-                        }}>
-                          <Typography sx={{ mb: 1 }}>{category?.category?.name || "Categoria " + index}</Typography>
-                          <Grid2 container sx={{ pl: 3 }} spacing={1}>
-                            {
-                              results?.map(result => <Grid2 key={result.id} size={12}>
-                                <Grid2 container>
-                                  <Grid2 size={6}>
-                                    <Typography variant="body2">{result.parameter.ro_l18n}</Typography>
-                                  </Grid2>
-
-                                  <Grid2 size={6}>
-                                    <Typography variant="body2">{result?.value || 0} {result?.parameter?.unit || "N/A"}</Typography>
-                                  </Grid2>
-                                </Grid2>
-                              </Grid2>)
-                            }
-
-                          </Grid2>
-                        </Box>
-                      )
-                    })}
+                    <ParametersRegisteredValues analyzeCategories={analyzeData?.categories} analyzeResults={analyzeData?.results} />
                   </Grid2>
                 </Grid2>
                 <Grid2 size={{
@@ -372,18 +288,7 @@ const Analize = ({ analize, setAnalize, isAnalizeLoading }) => {
                     <Divider />
                   </Grid2>
                   <Grid2 size={12}>
-                    {analyzeData?.notes ?
-                      <Box sx={{ p: 2, backgroundColor: theme => `${theme.palette.primary.main}30` }}>
-                        <Typography sx={{ fontStyle: "italic" }} variant="body2">"{analyzeData?.notes}"</Typography>
-                      </Box>
-
-                      : <Typography variant="body2">Nu exista completari scrise</Typography>}
-                  </Grid2>
-                  <Grid2 size={6} sx={{ mt: 1 }}>
-                    {analyzeData?.file ?
-                      <Button disabled={isFileDownloaded} onClick={() => handleDownloadFile(analyzeData?.file?.id, analyzeData?.file?.name)} variant="outlined" startIcon={<CloudDownloadIcon />}> {isFileDownloaded ? "Fisierul a fost descarcat" : "Descarca fisierul PDF"}</Button>
-                      :
-                      <Typography variant="body2">Nu exista fisier atasat</Typography>}
+                    <AnalyzeComplitions notes={analyzeData?.notes} file={analyzeData?.file}/>
                   </Grid2>
                 </Grid2>
                 <Grid2 size={12}>
@@ -435,7 +340,8 @@ const ResultForm = ({ analyzeData, analize, setAnalize }) => {
 
           const newAnalyze = {
             ...analyzeData,
-            diagnosis: res.data
+            diagnosis: res.data,
+            mlResults: values.mlResults
           };
 
           const updatedAnalize = [
@@ -533,7 +439,7 @@ const Medicamentatie = ({ medicamentatie }) => {
     <Paper sx={{ background: "#fff", p: 2 }}>
       <Grid2 container direction="column" rowGap={1}>
         <Grid2 size={12}>
-          <Typography>Medicamentatii</Typography>
+          <Typography>Tratamente</Typography>
         </Grid2>
         <Grid2 size={12}>
           <Divider />
