@@ -260,6 +260,36 @@ async function main() {
       key: 'medical-images/info_boli_cardio.jpg',
       mimeType: 'image/jpg',
       description: 'Imagine articol boli cardio',
+    },    
+    {
+      name: 'info_boli_dermatologic.jpg',
+      key: 'medical-images/info_boli_dermatologic.jpg',
+      mimeType: 'image/jpg',
+      description: 'Imagine articol boli dermatologice',
+    },
+    {
+      name: 'info_boli_infectioase.jpg',
+      key: 'medical-images/info_boli_infectioase.jpg',
+      mimeType: 'image/jpg',
+      description: 'Imagine articol boli infectioase',
+    },
+    {
+      name: 'info_boli_neurologice.jpg',
+      key: 'medical-images/info_boli_neurologice.jpg',
+      mimeType: 'image/jpg',
+      description: 'Imagine articol boli neurologice',
+    },
+    {
+      name: 'info_boli_endocrinologice.jpg',
+      key: 'medical-images/info_boli_endocrinologice.jpg',
+      mimeType: 'image/jpg',
+      description: 'Imagine articol boli endocrinologie',
+    },  
+    {
+      name: 'info_boli_reumatologie.jpg',
+      key: 'medical-images/info_boli_reumatologie.jpg',
+      mimeType: 'image/jpg',
+      description: 'Imagine articol boli reumatologie',
     }
   ];
 
@@ -293,12 +323,68 @@ async function main() {
     'utf8'
   );
 
+  const dermaArticleContent = readFileSync(
+    join(__dirname, 'articleSeeds', 'articleSeed_boli_dermatologice.txt'),
+    'utf8'
+  );
+
+  const infectioaseArticleContent = readFileSync(
+    join(__dirname, 'articleSeeds', 'articleSeed_boli_infectioase.txt'),
+    'utf8'
+  );
+
+  const neurologiceArticleContent = readFileSync(
+    join(__dirname, 'articleSeeds', 'articleSeed_boli_neurologice.txt'),
+    'utf8'
+  );
+
+  const endoArticleContent = readFileSync(
+    join(__dirname, 'articleSeeds', 'articleSeed_boli_endocrinologice.txt'),
+    'utf8'
+  );
+
+  const reumaArticleContent = readFileSync(
+    join(__dirname, 'articleSeeds', 'articleSeed_boli_reumatologie.txt'),
+    'utf8'
+  );
+  
+  
   const articles = [
     {
       name: 'Bolile cardiovasculare',
       description: 'Bolile cardiovasculare reprezintă una dintre principalele cauze de mortalitate la nivel global, afectând inima și vasele de sânge. Aceste afecțiuni pot fi prevenite în mare măsură printr-un stil de viață sănătos, dar necesită atenție și tratament adecvat pentru a preveni complicațiile.',
       content: cardioArticleContent,
       imageKey: 'medical-images/info_boli_cardio.jpg',
+    },    
+    {
+      name: 'Bolile dermatologice',
+      description: 'Bolile dermatologice afectează pielea, părul, unghiile și mucoasele, fiind frecvent întâlnite și variind de la afecțiuni ușoare, precum acneea, până la boli cronice, cum ar fi psoriazisul. Pielea, fiind cel mai mare organ al corpului, are un rol esențial în protecția organismului împotriva factorilor externi.',
+      content: dermaArticleContent,
+      imageKey: 'medical-images/info_boli_dermatologic.jpg',
+    },       
+    {
+      name: 'Bolile infectioase',
+      description: 'Bolile infecțioase sunt cauzate de microorganisme patogene precum bacterii, virusuri, fungi și paraziți. Ele se pot transmite prin contact direct, aer, apă sau alimente contaminate.',
+      content: infectioaseArticleContent,
+      imageKey: 'medical-images/info_boli_infectioase.jpg',
+    },
+    {
+      name: 'Bolile neurologice',
+      description: 'Bolile neurologice sunt afecțiuni care afectează sistemul nervos central și sistemul nervos periferic. Acestea pot fi cauzate de factori genetici, leziuni, infecții sau boli autoimune, având un impact semnificativ asupra calității vieții.',
+      content: neurologiceArticleContent,
+      imageKey: 'medical-images/info_boli_neurologice.jpg',
+    },
+    {
+      name: 'Bolile endocrinologice',
+      description: 'Bolile endocrinologic reprezintă afecțiuni ale glandelor endocrine, care produc hormoni esențiali pentru reglarea metabolismului, creșterii, dezvoltării și funcționării corecte a organismului. Dezechilibrele hormonale pot afecta multiple organe și sisteme, necesitând diagnostic precis și tratament personalizat.',
+      content: endoArticleContent,
+      imageKey: 'medical-images/info_boli_endocrinologice.jpg',
+    },
+    {
+      name: 'Bolile reumatologice',
+      description: 'Bolile reumatologice reprezintă un grup larg de afecțiuni care afectează articulațiile, mușchii, oasele și uneori organele interne. Aceste boli pot cauza durere, inflamație, rigiditate și pierderea funcției articulare, necesitând diagnostic precoce și tratament adecvat pentru a preveni deteriorarea permanentă.',
+      content: reumaArticleContent,
+      imageKey: 'medical-images/info_boli_reumatologie.jpg',
     },
   ];
 
