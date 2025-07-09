@@ -176,7 +176,7 @@ const DoctorDiagnosis = ({ analyzeId }) => {
                                                         <TableRow key={row.resultName}>
                                                             <TableCell>{row.resultName}</TableCell>
                                                             <TableCell align="right">
-                                                                {row.prediction ? `Da` : `Nu`}
+                                                                {row.confirmed ? `Da` : `Nu`}
                                                             </TableCell>
                                                         </TableRow>
                                                     ))

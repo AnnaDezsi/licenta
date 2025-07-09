@@ -18,7 +18,7 @@ class BreastCancerModel(BaseModel):
                 "smoothness_mean",
                 "compactness_mean",
                 "concavity_mean",
-                "concave_points_mean"
+                "concave points_mean"
             ]
         )
 

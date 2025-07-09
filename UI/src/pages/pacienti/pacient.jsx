@@ -326,6 +326,7 @@ const ResultForm = ({ analyzeData, analize, setAnalize }) => {
       doctorNote: analyzeData?.diagnosis?.doctorNote || "",
       mlResults: analyzeData?.mlResults.map(r => ({
         resultName: r.resultName,
+        confirmed: r.confirmed,
         includeInReport: r.includeInReport
       }))
     },
@@ -379,7 +380,7 @@ const ResultForm = ({ analyzeData, analize, setAnalize }) => {
                   <TableRow key={row.resultName}>
                     <TableCell>{row.resultName}</TableCell>
                     <TableCell align="right">
-                      {row.prediction ? <CheckIcon /> : <CloseIcon />}
+                      {row.confirmed ? <CheckIcon /> : <CloseIcon />}
                     </TableCell>
                     <TableCell align="right">
                       <Checkbox

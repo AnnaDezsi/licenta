@@ -462,13 +462,15 @@ export const startMLForAnalyzeId = async (req, res) => {
 
         const mlResults = responseFromML.data.results;
 
+        console.log(mlResults)
         const savedResults = [];
 
         for (const result of mlResults) {
             const saved = await prisma.medical_Analyze_ML_Result.create({
                 data: {
                     resultName: result.disease,
-                    confirmed: false,
+                    confirmed: result.prediction,
+                    includeInReport: false,
                     analyze: { connect: { id: analyzeId } }
                 }
             });
